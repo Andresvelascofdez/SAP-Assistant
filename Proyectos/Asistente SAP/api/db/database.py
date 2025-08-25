@@ -4,7 +4,7 @@ Wiki Inteligente SAP IS-U
 """
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
-from ..config import settings
+from config import settings
 
 # Motor de base de datos
 engine = create_async_engine(
@@ -35,6 +35,6 @@ async def get_db():
 
 async def init_db():
     """Inicializar base de datos"""
-    from api.db.models import Base
+    from db.models import Base
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

@@ -6,9 +6,9 @@ import json
 import asyncio
 from typing import Optional, Dict, Any
 from openai import AsyncOpenAI
-from ..config import settings
-from ..models.schemas import DocumentStructured
-from ..utils.logging import get_logger
+from config import settings
+from models.schemas import DocumentStructured
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 

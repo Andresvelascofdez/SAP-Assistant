@@ -13,8 +13,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from api.db.models import Base
-from api.config import settings
+from db.models import Base
+from config import settings
 
 # Configuración de Alembic
 config = context.config

@@ -7,16 +7,16 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..db.database import get_db
-from ..db.models import User
-from ..models.schemas import (
+from db.database import get_db
+from db.models import User
+from models.schemas import (
     DocumentIngest, DocumentResponse, DocumentDetail, DocumentList,
     FileProcessResult, ScopeEnum, DocumentTypeEnum
 )
-from ..services.auth import get_current_active_user, require_tenant_access
-from ..services.ingest import DocumentProcessor
-from ..utils.logging import get_logger
-from ..utils.parsers import FileParser
+from services.auth import get_current_active_user, require_tenant_access
+from services.ingest import DocumentProcessor
+from utils.logging import get_logger
+from utils.parsers import FileParser
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/ingest", tags=["Document Ingestion"])
@@ -200,7 +200,7 @@ async def get_document(
 ):
     """Obtener detalle de documento"""
     from sqlalchemy import select
-    from api.db.models import Document
+    from db.models import Document
     
     stmt = select(Document).where(Document.id == document_id)
     result = await db.execute(stmt)
@@ -247,7 +247,7 @@ async def list_documents(
 ):
     """Listar documentos con filtros"""
     from sqlalchemy import select, func
-    from api.db.models import Document
+    from db.models import Document
     
     # Construir query base
     stmt = select(Document)

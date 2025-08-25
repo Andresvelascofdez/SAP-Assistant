@@ -10,12 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from qdrant_client.models import PointStruct
 
-from ..db.models import Document, Chunk, Tenant
-from ..models.schemas import DocumentIngest, DocumentMetadata, DocumentStructured, DocumentResponse
-from ..services.embeddings import EmbeddingService, QdrantService
-from ..services.llm import LLMService
-from ..utils.logging import get_logger
-from ..utils.parsers import FileParser
+from db.models import Document, Chunk, Tenant
+from models.schemas import DocumentIngest, DocumentMetadata, DocumentStructured, DocumentResponse
+from services.embeddings import EmbeddingService, QdrantService
+from services.llm import LLMService
+from utils.logging import get_logger
+from utils.parsers import FileParser
 
 logger = get_logger(__name__)
 

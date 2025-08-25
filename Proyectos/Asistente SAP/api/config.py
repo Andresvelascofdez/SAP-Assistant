@@ -8,11 +8,11 @@ from pydantic import field_validator
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file="../.env", env_file_encoding="utf-8")
     
     # Base de datos
-    database_url: str = "postgresql+asyncpg://postgres:changeme@localhost:5432/sapisu"
-    postgres_password: str = "changeme"
+    database_url: str = "postgresql+asyncpg://sapisu_user:sapisu_password@localhost:5432/sapisu_wiki"
+    postgres_password: str = "sapisu_password"
     
     # Qdrant
     qdrant_url: str = "http://localhost:6333"

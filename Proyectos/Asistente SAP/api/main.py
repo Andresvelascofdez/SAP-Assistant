@@ -14,11 +14,11 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import time
 
-from .config import settings
-from .db.database import init_db
-from .utils.logging import configure_logging, get_logger, add_request_context
-from .routers import auth, ingest, search
-from .routers.admin import router as admin_router
+from config import settings
+from db.database import init_db
+from utils.logging import configure_logging, get_logger, add_request_context
+from routers import auth, ingest, search
+from routers.admin import router as admin_router
 
 # Configurar logging
 configure_logging()
@@ -40,14 +40,14 @@ async def lifespan(app: FastAPI):
         logger.info("Database initialized")
         
         # Inicializar Qdrant
-        from api.services.embeddings import QdrantService
+        from services.embeddings import QdrantService
         qdrant = QdrantService()
         await qdrant.ensure_collection()
         logger.info("Qdrant collection initialized")
         
         # Verificar conexión OpenAI
         if settings.openai_api_key:
-            from api.services.embeddings import EmbeddingService
+            from services.embeddings import EmbeddingService
             embedding_service = EmbeddingService()
             # Test simple
             test_embedding = await embedding_service.get_embedding("test")
@@ -110,7 +110,7 @@ async def add_process_time_header(request: Request, call_next):
     try:
         auth_header = request.headers.get("authorization")
         if auth_header and auth_header.startswith("Bearer "):
-            from api.services.auth import AuthService
+            from services.auth import AuthService
             token = auth_header.split(" ")[1]
             token_data = AuthService.verify_token(token)
             if token_data:
@@ -185,12 +185,12 @@ async def health_check(request: Request):
     """Health check"""
     try:
         # Verificar base de datos
-        from api.db.database import engine
+        from db.database import engine
         async with engine.begin() as conn:
             await conn.execute("SELECT 1")
         
         # Verificar Qdrant
-        from api.services.embeddings import QdrantService
+        from services.embeddings import QdrantService
         qdrant = QdrantService()
         collection_info = await qdrant.get_collection_info()
         

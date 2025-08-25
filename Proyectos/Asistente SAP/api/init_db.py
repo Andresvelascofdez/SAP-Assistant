@@ -11,16 +11,17 @@ sys.path.append(os.path.dirname(__file__))
 
 from sqlalchemy import create_engine
 from db.models import Base
-
-# URL de la base de datos (para desarrollo local)
-DATABASE_URL = "postgresql://postgres:changeme@localhost:5432/sapisu"
+from config import settings
 
 def init_database():
     """Inicializar la base de datos con las tablas"""
     print("Inicializando base de datos...")
     
+    # Usar la URL de configuración
+    database_url = settings.database_url.replace("+asyncpg", "")
+    
     # Crear engine síncrono para la inicialización
-    engine = create_engine(DATABASE_URL.replace("+asyncpg", ""))
+    engine = create_engine(database_url)
     
     # Crear todas las tablas
     Base.metadata.create_all(engine)

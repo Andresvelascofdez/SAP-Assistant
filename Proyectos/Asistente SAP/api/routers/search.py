@@ -8,16 +8,16 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..db.database import get_db
-from ..db.models import User
-from ..models.schemas import (
+from db.database import get_db
+from db.models import User
+from models.schemas import (
     SearchRequest, SearchResponse, SearchHit,
     ChatRequest, ChatResponse, ChatSource
 )
-from ..services.auth import get_current_active_user, require_tenant_access
-from ..services.embeddings import EmbeddingService, QdrantService
-from ..services.llm import LLMService
-from ..utils.logging import get_logger
+from services.auth import get_current_active_user, require_tenant_access
+from services.embeddings import EmbeddingService, QdrantService
+from services.llm import LLMService
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/search", tags=["Search & Chat"])
@@ -55,7 +55,7 @@ async def chat_public(
                 search_filters["topic"] = request.filters.topic
         
         # Buscar chunks relevantes
-        from api.config import settings
+        from config import settings
         search_results = await qdrant_service.search(
             query_vector=query_embedding,
             tenant_filter=tenant_filter,

@@ -8,10 +8,10 @@ from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from ..db.database import get_db
-from ..db.models import User, Tenant
-from ..models.schemas import UserLogin, UserCreate, UserResponse, Token
-from ..services.auth import (
+from db.database import get_db
+from db.models import User, Tenant
+from models.schemas import UserLogin, UserCreate, UserResponse, Token
+from services.auth import (
     get_current_active_user,
     authenticate_user,
     create_access_token,
@@ -21,7 +21,7 @@ from ..services.auth import (
     get_user_by_id,
     require_admin
 )
-from ..utils.logging import get_logger
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentication"])

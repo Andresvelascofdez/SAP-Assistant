@@ -8,14 +8,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
-from ..db.database import get_db
-from ..db.models import User, Document, Chunk, Tenant, EvalRun
-from ..models.schemas import (
+from db.database import get_db
+from db.models import User, Document, Chunk, Tenant, EvalRun
+from models.schemas import (
     HealthCheck, SystemMetrics, TenantCreate, TenantResponse,
     EvalRunResponse
 )
-from ..services.auth import require_admin
-from ..utils.logging import get_logger
+from services.auth import require_admin
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/admin", tags=["Administration"])
@@ -43,7 +43,7 @@ async def detailed_health_check(
         
         # Verificar Qdrant
         try:
-            from api.services.embeddings import QdrantService
+            from services.embeddings import QdrantService
             qdrant = QdrantService()
             collection_info = await qdrant.get_collection_info()
             
@@ -57,8 +57,8 @@ async def detailed_health_check(
         
         # Verificar OpenAI
         try:
-            from api.services.embeddings import EmbeddingService
-            from api.config import settings
+            from services.embeddings import EmbeddingService
+            from config import settings
             
             if not settings.openai_api_key:
                 services["openai"] = "not_configured"
@@ -241,8 +241,8 @@ async def reindex_documents(
 ):
     """Re-indexar documentos en Qdrant"""
     try:
-        from api.services.embeddings import EmbeddingService, QdrantService
-        from api.services.ingest import DocumentProcessor
+        from services.embeddings import EmbeddingService, QdrantService
+        from services.ingest import DocumentProcessor
         
         # Construir query
         stmt = select(Document)

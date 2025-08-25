@@ -11,10 +11,10 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from ..config import settings
-from ..db.database import get_db
-from ..db.models import User, Tenant
-from ..models.schemas import TokenData
+from config import settings
+from db.database import get_db
+from db.models import User, Tenant
+from models.schemas import TokenData
 
 # Configuración de encriptación
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
