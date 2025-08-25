@@ -43,7 +43,47 @@ This system leverages **GPT-4o-mini** for cost-effective conversational capabili
 
 ## 🚀 Quick Installation
 
-### Option 1: Single-User Setup (Recommended)
+### ⚡ One-Click Startup (Recommended)
+
+**Windows (PowerShell):**
+```powershell
+# 1. Clone repository
+git clone https://github.com/Andresvelascofdez/SAP-Assistant.git
+cd SAP-Assistant
+
+# 2. Configure API key
+cp .env.example .env
+# Edit .env with your OpenAI API key
+
+# 3. One-click start!
+.\start-sapisu-wiki.ps1
+```
+
+**Linux/macOS:**
+```bash
+# 1. Clone repository
+git clone https://github.com/Andresvelascofdez/SAP-Assistant.git
+cd SAP-Assistant
+
+# 2. Configure API key
+cp .env.example .env
+# Edit .env with your OpenAI API key
+
+# 3. One-click start!
+chmod +x start-sapisu-wiki.sh
+./start-sapisu-wiki.sh
+```
+
+**What the script does:**
+- ✅ Stops any existing services
+- ✅ Verifies all prerequisites 
+- ✅ Starts Docker services (PostgreSQL + Qdrant)
+- ✅ Configures Python environment
+- ✅ Launches FastAPI server
+- ✅ Opens browser automatically
+- ✅ Monitors services continuously
+
+### Option 1: Single-User Setup
 
 ```bash
 git clone https://github.com/Andresvelascofdez/SAP-Assistant.git
