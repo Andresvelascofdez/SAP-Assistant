@@ -18,7 +18,7 @@ class LLMService:
     
     def __init__(self):
         self.client = AsyncOpenAI(api_key=settings.openai_api_key)
-        self.model = "gpt-3.5-turbo"
+        self.model = settings.llm_model
     
     async def extract_structure(self, text: str) -> DocumentStructured:
         """Extraer estructura del texto usando LLM"""

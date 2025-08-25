@@ -163,7 +163,7 @@ QDRANT_COLLECTION=sapisu_embeddings
 # OpenAI Configuration
 OPENAI_API_KEY=$OpenAIKey
 EMBEDDING_MODEL=text-embedding-3-small
-LLM_MODEL=gpt-3.5-turbo
+LLM_MODEL=gpt-4.1-preview
 
 # Security
 SECRET_KEY=$secretKey

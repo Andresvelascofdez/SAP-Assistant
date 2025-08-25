@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str
     embedding_model: str = "text-embedding-3-small"
+    llm_model: str = "gpt-4.1-preview"
     
     # JWT
     jwt_secret: str

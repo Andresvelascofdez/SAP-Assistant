@@ -36,7 +36,7 @@ SAP IS-U Smart Wiki is a Retrieval-Augmented Generation (RAG) system designed fo
 - **FastAPI Backend**: Central API server. Handles authentication, ingestion, search, chat, and document management. Implements multi-tenant logic and security.
 - **PostgreSQL**: Relational DB for all metadata (users, tenants, documents, chunks, logs, queries). Ensures tenant isolation and fast lookups.
 - **Qdrant**: Vector DB for semantic search. Stores embeddings for each document chunk, indexed by tenant and scope.
-- **OpenAI API**: Used for generating embeddings (text-embedding-ada-002 or similar) and LLM responses (GPT-3.5/4).
+- **OpenAI API**: Used for generating embeddings (text-embedding-3-small) and LLM responses (GPT-4.1).
 - **Scheduler (APScheduler)**: Automates backups, log cleanup, and periodic maintenance tasks.
 
 ## 3. Data Model & Storage Logic
@@ -82,7 +82,7 @@ SAP IS-U Smart Wiki is a Retrieval-Augmented Generation (RAG) system designed fo
 
 1. **User Question**: User asks a natural language question.
 2. **Context Retrieval**: System retrieves relevant chunks using semantic search (as above).
-3. **LLM Generation**: OpenAI LLM (GPT-3.5/4) receives the question and retrieved context, generating a detailed answer.
+3. **LLM Generation**: OpenAI LLM (GPT-4.1) receives the question and retrieved context, generating a detailed answer.
 4. **Source Attribution**: Answer includes citations to source documents/chunks.
 
 ### 4.4 Multi-Tenant Security

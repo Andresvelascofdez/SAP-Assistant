@@ -20,7 +20,7 @@ class EmbeddingService:
     def __init__(self):
         self.client = AsyncOpenAI(api_key=settings.openai_api_key)
         self.model = settings.embedding_model
-        self.encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+        self.encoding = tiktoken.encoding_for_model("gpt-4")
     
     async def get_embeddings(self, texts: List[str]) -> List[List[float]]:
         """Obtener embeddings para lista de textos"""

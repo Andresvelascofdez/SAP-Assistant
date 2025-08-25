@@ -8,7 +8,7 @@ A complete multi-tenant RAG (Retrieval-Augmented Generation) solution for SAP IS
 
 - **Multi-tenant RAG**: Complete client isolation with STANDARD and CLIENT_SPECIFIC scopes
 - **Intelligent Search**: Vector embeddings with Qdrant and OpenAI
-- **Conversational Chat**: SAP IS-U specialized assistant with GPT-3.5-turbo
+- **Conversational Chat**: SAP IS-U specialized assistant with GPT-4.1
 - **Document Management**: Automatic processing of PDF, DOCX, HTML, MD
 - **JWT Authentication**: Secure system with user roles
 - **Complete REST API**: FastAPI with automatic documentation
@@ -24,15 +24,29 @@ A complete multi-tenant RAG (Retrieval-Augmented Generation) solution for SAP IS
                                  → [APScheduler]
 ```
 
+## AI Configuration
+
+This system leverages **GPT-4.1** (latest preview) for advanced conversational capabilities and **text-embedding-3-small** for semantic search. Key AI features:
+
+- **Advanced Reasoning**: GPT-4.1 provides superior understanding of SAP IS-U technical concepts
+- **Source Attribution**: All responses include precise citations to source documents
+- **Context Awareness**: Maintains conversation history and domain-specific knowledge
+- **Multi-language Support**: Works with Spanish, English, and technical SAP terminology
+
+### OpenAI Models Used
+- **LLM**: `gpt-4.1-preview` - For chat responses and content structuring
+- **Embeddings**: `text-embedding-3-small` - For semantic search and similarity matching
+- **API Key**: See [OpenAI Configuration Guide](docs/OPENAI_CONFIG.md) for setup instructions
+
 ## Quick Installation
 
 1. **Clone and configure environment**
 
 ```bash
-git clone <repo>
-cd Asistente-SAP
+git clone https://github.com/Andresvelascofdez/SAP-Assistant.git
+cd SAP-Assistant
 cp .env.example .env
-# Edit .env with your credentials
+# Edit .env with your OpenAI API key (see docs/OPENAI_CONFIG.md)
 ```
 
 2. **Launch with Docker Compose**

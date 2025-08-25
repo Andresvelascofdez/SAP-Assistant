@@ -88,7 +88,7 @@ Project changelog from April 2025 to current date.
 - **Python 3.11+** with FastAPI, SQLAlchemy, Pydantic
 - **PostgreSQL 16** for metadata and relationships
 - **Qdrant 1.x** for vectors and semantic search
-- **OpenAI API** (text-embedding-3-small + GPT-3.5-turbo)
+- **OpenAI API** (text-embedding-3-small + GPT-4.1)
 - **Docker Compose** for orchestration
 - **Traefik** for routing and SSL
 - **APScheduler** for scheduled tasks

@@ -206,10 +206,10 @@ This tool is essential to my daily consulting work, acting as a productivity mul
 #### 4.2.2 Infrastructure & Tools
 
 - **Development Environment**: Not applicable (used existing personal computer)
-- **Cloud Services (testing)**: Not applicable (data stored and processed on personal NAS)
-- **AI API Costs (OpenAI)**: Actual cost incurred, approximately €1,000 to date
+- **Cloud Services (testing)**: Not applicable (data stored and processed on personal NAS server)
+- **AI API Costs (OpenAI)**: Actual cost incurred, approximately €500 to date
 - **Software Licenses**: Windows 11 license (already owned, no additional cost for this project)
-- **Total Infrastructure**: €1,000 (actual cost for OpenAI API usage)
+- **Total Infrastructure**: €500 (actual cost for OpenAI API usage)
 
 #### 4.2.3 IP Protection & Legal
 
@@ -220,7 +220,7 @@ This tool is essential to my daily consulting work, acting as a productivity mul
 
 #### 4.2.4 Total Investment
 
-**Conservative Estimate**: €73,000-76,000
+**Conservative Estimate**: €58.500 + VAT
 
 ### 4.3 Ongoing Operational Costs
 
@@ -240,7 +240,7 @@ This tool is essential to my daily consulting work, acting as a productivity mul
 - **API Layer**: FastAPI (Python 3.11+)
 - **Database**: PostgreSQL 16 (metadata and relationships)
 - **Vector Store**: Qdrant (semantic search and embeddings)
-- **AI Integration**: OpenAI API (GPT-3.5-turbo, text-embedding-3-small)
+- **AI Integration**: OpenAI API (GPT-4.1, text-embedding-3-small)
 - **Scheduler**: APScheduler (automated tasks)
 - **Proxy**: Traefik (SSL/TLS termination)
 
