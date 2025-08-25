@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wiki Inteligente SAP IS-U</title>
+    <title>SAP IS-U Smart Wiki</title>
     <style>
         * {
             margin: 0;
@@ -12,979 +12,445 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #343541;
+            color: #ececec;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background: #202123;
+            padding: 12px 20px;
+            border-bottom: 1px solid #4d4d4f;
+            text-align: center;
         }
 
         .header h1 {
-            font-size: 1.8rem;
-            font-weight: 300;
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
         }
 
-        .header .version {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-        }
-
-        .controls {
-            padding: 20px 30px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
+        .chat-container {
+            flex: 1;
             display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
+            flex-direction: column;
+            max-width: 768px;
+            margin: 0 auto;
+            width: 100%;
+            height: calc(100vh - 120px);
         }
 
-        .control-group {
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
             display: flex;
-            align-items: center;
-            gap: 8px;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .control-group label {
-            font-weight: 500;
-            color: #495057;
-        }
-
-        select, input {
-            padding: 8px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .mode-toggle {
+        .message {
             display: flex;
-            background: #e9ecef;
-            border-radius: 25px;
-            overflow: hidden;
+            width: 100%;
+            animation: fadeIn 0.3s ease-in;
         }
 
-        .mode-btn {
-            padding: 10px 20px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
+        .message.user {
+            justify-content: flex-end;
         }
 
-        .mode-btn.active {
-            background: #007bff;
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .message.user .message-content {
+            background: #10a37f;
             color: white;
+            border-bottom-right-radius: 4px;
         }
 
-        .main-content {
+        .message.assistant .message-content {
+            background: #444654;
+            color: #ececec;
+            border-bottom-left-radius: 4px;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: #343541;
+            border-top: 1px solid #4d4d4f;
+        }
+
+        .input-wrapper {
             display: flex;
-            min-height: 500px;
-        }
-
-        .input-section {
-            flex: 1;
-            padding: 30px;
-            border-right: 1px solid #dee2e6;
-        }
-
-        .output-section {
-            flex: 1;
-            padding: 30px;
-            background: #f8f9fa;
-        }
-
-        .input-area {
+            gap: 10px;
+            max-width: 768px;
+            margin: 0 auto;
             position: relative;
         }
 
-        #mainTextarea {
-            width: 100%;
-            min-height: 300px;
-            padding: 15px;
-            border: 2px dashed #dee2e6;
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: inherit;
-            resize: vertical;
-            transition: border-color 0.3s;
-        }
-
-        #mainTextarea:focus {
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #565869;
+            border-radius: 24px;
+            background: #40414f;
+            color: #ececec;
+            font-size: 16px;
             outline: none;
-            border-color: #007bff;
-            border-style: solid;
+            resize: none;
+            min-height: 24px;
+            max-height: 120px;
         }
 
-        #mainTextarea.dragover {
-            border-color: #28a745;
-            background: #f8fff9;
+        .message-input:focus {
+            border-color: #10a37f;
         }
 
-        .file-info {
-            margin-top: 10px;
-            padding: 10px;
-            background: #e7f3ff;
-            border-radius: 5px;
-            font-size: 0.9rem;
+        .message-input::placeholder {
+            color: #8e8ea0;
+        }
+
+        .send-button {
+            padding: 8px 16px;
+            background: #10a37f;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            height: fit-content;
+            align-self: flex-end;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #0d8c6c;
+        }
+
+        .send-button:disabled {
+            background: #565869;
+            cursor: not-allowed;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input {
             display: none;
         }
 
-        .metadata-inputs {
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .action-buttons {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 10px 20px;
+        .file-button {
+            padding: 8px 12px;
+            background: #565869;
+            color: #ececec;
             border: none;
-            border-radius: 5px;
+            border-radius: 20px;
             cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
+            font-size: 14px;
+            transition: background-color 0.2s;
         }
 
-        .btn-primary {
-            background: #007bff;
-            color: white;
+        .file-button:hover {
+            background: #6b6c7b;
         }
 
-        .btn-primary:hover {
-            background: #0056b3;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-
-        .result-area {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            min-height: 300px;
-            border: 1px solid #dee2e6;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: #6c757d;
-        }
-
-        .loading::after {
-            content: "";
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #007bff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .sources {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #dee2e6;
-        }
-
-        .source-item {
-            background: #f8f9fa;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-            border-left: 4px solid #007bff;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            border-left: 4px solid #dc3545;
-        }
-
-        .success {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 5px;
-            border-left: 4px solid #28a745;
-        }
-
-        .history {
-            margin-top: 20px;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-        }
-
-        .history-item {
-            padding: 10px;
-            border-bottom: 1px solid #dee2e6;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .history-item:hover {
-            background: #f8f9fa;
-        }
-
-        .status-bar {
-            background: #343a40;
-            color: white;
-            padding: 10px 30px;
-            font-size: 0.9rem;
+        .typing-indicator {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
+            width: 100%;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .typing-dots {
+            background: #444654;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            padding: 12px 16px;
+            display: flex;
+            gap: 4px;
             align-items: center;
         }
 
-        .shortcuts {
-            background: #fff3cd;
-            color: #856404;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            font-size: 0.9rem;
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #8e8ea0;
+            border-radius: 50%;
+            animation: typingDots 1.5s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .error-message {
+            background: #f93a37;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            max-width: 70%;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes typingDots {
+            0%, 60%, 100% {
+                opacity: 0.3;
+            }
+            30% {
+                opacity: 1;
+            }
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: #343541;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #565869;
+            border-radius: 3px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #6b6c7b;
         }
 
         @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
+            .chat-container {
+                max-width: 100%;
             }
-            
-            .input-section {
-                border-right: none;
-                border-bottom: 1px solid #dee2e6;
+
+            .message-content {
+                max-width: 85%;
             }
-            
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
+
+            .messages-container {
+                padding: 15px;
+            }
+
+            .input-container {
+                padding: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>🔍 Wiki Inteligente SAP IS-U</h1>
-            <div class="version">v1.0.0</div>
-        </div>
+    <header class="header">
+        <h1>SAP IS-U Smart Wiki</h1>
+    </header>
 
-        <!-- Controls -->
-        <div class="controls">
-            <div class="control-group">
-                <label for="tenantSelect">Cliente:</label>
-                <select id="tenantSelect">
-                    <option value="STANDARD">STANDARD</option>
-                    <option value="CLIENT_A">Cliente A</option>
-                    <option value="CLIENT_B">Cliente B</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label for="scopeSelect">Scope:</label>
-                <select id="scopeSelect">
-                    <option value="STANDARD">STANDARD</option>
-                    <option value="CLIENT_SPECIFIC">CLIENT_SPECIFIC</option>
-                </select>
-            </div>
-
-            <div class="mode-toggle">
-                <button class="mode-btn active" data-mode="add">📝 Añadir</button>
-                <button class="mode-btn" data-mode="ask">❓ Preguntar</button>
-            </div>
-        </div>
-
-        <!-- Shortcuts info -->
-        <div class="shortcuts">
-            💡 <strong>Atajos:</strong> Ctrl+1 (Añadir) | Ctrl+2 (Preguntar) | Ctrl+Enter (Ejecutar) | 
-            <strong>Comandos:</strong> /add, /ask, /tenant CLIENT_X, /std
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Input Section -->
-            <div class="input-section">
-                <div class="input-area">
-                    <textarea 
-                        id="mainTextarea" 
-                        placeholder="Describe tu incidencia SAP IS-U en detalle...
-
-Ejemplo:
-- ¿Qué error aparece?
-- ¿En qué transacción?
-- ¿Qué tablas están involucradas?
-- ¿Cuáles son los pasos para reproducir?
-
-También puedes arrastrar archivos PDF, DOCX, MD aquí."></textarea>
-                    
-                    <div id="fileInfo" class="file-info">
-                        <strong>Archivo seleccionado:</strong> <span id="fileName"></span> 
-                        (<span id="fileSize"></span>)
-                    </div>
-                </div>
-
-                <div class="metadata-inputs" id="metadataInputs">
-                    <div class="control-group">
-                        <label for="systemInput">Sistema:</label>
-                        <input type="text" id="systemInput" placeholder="IS-U, CRM..." value="IS-U">
-                    </div>
-                    <div class="control-group">
-                        <label for="topicInput">Tema:</label>
-                        <input type="text" id="topicInput" placeholder="billing, move-in...">
-                    </div>
-                    <div class="control-group">
-                        <label for="tcodesInput">T-codes:</label>
-                        <input type="text" id="tcodesInput" placeholder="EC85, ES21...">
-                    </div>
-                    <div class="control-group">
-                        <label for="tablesInput">Tablas:</label>
-                        <input type="text" id="tablesInput" placeholder="EABLG, BUT000...">
-                    </div>
-                </div>
-
-                <div class="action-buttons">
-                    <button class="btn btn-primary" id="executeBtn">🚀 Procesar</button>
-                    <button class="btn btn-secondary" id="clearBtn">🗑️ Limpiar</button>
-                    <button class="btn btn-success" id="saveResponseBtn" style="display: none;">💾 Guardar Respuesta</button>
-                </div>
-            </div>
-
-            <!-- Output Section -->
-            <div class="output-section">
-                <div class="result-area" id="resultArea">
-                    <div style="text-align: center; color: #6c757d; padding: 50px;">
-                        <h3>👋 ¡Bienvenido!</h3>
-                        <p>Selecciona un modo y describe tu consulta o incidencia.</p>
-                        <p>El sistema analizará el contenido y te ayudará con información relevante.</p>
-                    </div>
-                </div>
-
-                <div class="history" id="historyPanel" style="display: none;">
-                    <div style="padding: 10px; background: #f8f9fa; font-weight: bold; border-bottom: 1px solid #dee2e6;">
-                        📚 Historial Reciente
-                    </div>
-                    <div id="historyItems"></div>
+    <div class="chat-container">
+        <div class="messages-container" id="messagesContainer">
+            <div class="message assistant">
+                <div class="message-content">
+                    ¡Hola! Soy tu asistente especializado en SAP IS-U. Puedo ayudarte con consultas sobre utilities, facturación, medidores, contratos y mucho más. ¿En qué puedo ayudarte hoy?
                 </div>
             </div>
         </div>
 
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div id="statusText">✅ Listo - Selecciona un modo para comenzar</div>
-            <div id="statusInfo">
-                <span id="tokenCount">Tokens: 0</span> | 
-                <span id="connectionStatus">🟢 Conectado</span>
+        <div class="input-container">
+            <div class="input-wrapper">
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" class="file-input" accept=".txt,.pdf,.doc,.docx" onchange="handleFileSelect(event)">
+                    <button class="file-button" onclick="document.getElementById('fileInput').click()">
+                        📎
+                    </button>
+                </div>
+                <textarea 
+                    id="messageInput" 
+                    class="message-input" 
+                    placeholder="Escribe tu pregunta sobre SAP IS-U..."
+                    onkeypress="handleKeyPress(event)"
+                    rows="1"
+                ></textarea>
+                <button id="sendButton" class="send-button" onclick="sendMessage()">
+                    Enviar
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Estado de la aplicación
-        let currentMode = 'add';
-        let authToken = null;
-        let selectedFile = null;
-        let history = JSON.parse(localStorage.getItem('sapisu_history') || '[]');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
 
-        // Elementos DOM
-        const modeButtons = document.querySelectorAll('.mode-btn');
-        const mainTextarea = document.getElementById('mainTextarea');
-        const tenantSelect = document.getElementById('tenantSelect');
-        const scopeSelect = document.getElementById('scopeSelect');
-        const executeBtn = document.getElementById('executeBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const saveResponseBtn = document.getElementById('saveResponseBtn');
-        const resultArea = document.getElementById('resultArea');
-        const statusText = document.getElementById('statusText');
-        const fileInfo = document.getElementById('fileInfo');
-        const metadataInputs = document.getElementById('metadataInputs');
-        const historyPanel = document.getElementById('historyPanel');
-        const historyItems = document.getElementById('historyItems');
-
-        // Configuración
-        const API_BASE = '/api/v1';
-
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', initialize);
-        modeButtons.forEach(btn => btn.addEventListener('click', handleModeChange));
-        executeBtn.addEventListener('click', handleExecute);
-        clearBtn.addEventListener('click', handleClear);
-        saveResponseBtn.addEventListener('click', handleSaveResponse);
-        mainTextarea.addEventListener('input', handleTextInput);
-        mainTextarea.addEventListener('keydown', handleKeydown);
-        document.addEventListener('keydown', handleGlobalKeydown);
-
-        // Drag & Drop
-        mainTextarea.addEventListener('dragover', handleDragOver);
-        mainTextarea.addEventListener('dragleave', handleDragLeave);
-        mainTextarea.addEventListener('drop', handleFileDrop);
-
-        function initialize() {
-            updateUI();
-            loadHistory();
-            checkConnection();
+        function addMessageToChat(content, isUser = false, isError = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
             
-            // Cargar tenant guardado
-            const savedTenant = localStorage.getItem('sapisu_tenant');
-            if (savedTenant) {
-                tenantSelect.value = savedTenant;
+            const contentDiv = document.createElement('div');
+            contentDiv.className = isError ? 'error-message' : 'message-content';
+            contentDiv.innerHTML = content;
+            
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            
+            const dotsDiv = document.createElement('div');
+            dotsDiv.className = 'typing-dots';
+            
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                dotsDiv.appendChild(dot);
+            }
+            
+            typingDiv.appendChild(dotsDiv);
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
             }
         }
 
-        function handleModeChange(event) {
-            const newMode = event.target.dataset.mode;
-            
-            modeButtons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            currentMode = newMode;
-            updateUI();
-        }
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
 
-        function updateUI() {
-            // Actualizar placeholder
-            if (currentMode === 'add') {
-                mainTextarea.placeholder = `📝 Describe tu incidencia SAP IS-U en detalle...
+            // Add user message
+            addMessageToChat(message, true);
+            messageInput.value = '';
+            sendButton.disabled = true;
 
-Ejemplo:
-- ¿Qué error aparece?
-- ¿En qué transacción?
-- ¿Qué tablas están involucradas?
-- ¿Cuáles son los pasos para reproducir?
+            // Show typing indicator
+            showTypingIndicator();
 
-También puedes arrastrar archivos PDF, DOCX, MD aquí.`;
-                executeBtn.textContent = '📤 Ingestar';
-                executeBtn.className = 'btn btn-primary';
-                metadataInputs.style.display = 'grid';
-                statusText.textContent = '📝 Modo Añadir - Describe tu incidencia o arrastra un archivo';
-            } else {
-                mainTextarea.placeholder = `❓ Haz tu pregunta sobre SAP IS-U...
-
-Ejemplos:
-- ¿Cómo solucionar error en EC85?
-- Proceso de alta de suministro con ES21
-- Error Business Partner no válido
-- Configuración de aparatos en EL31
-
-Usa lenguaje natural, el sistema entenderá tu consulta.`;
-                executeBtn.textContent = '🔍 Consultar';
-                executeBtn.className = 'btn btn-success';
-                metadataInputs.style.display = 'none';
-                statusText.textContent = '❓ Modo Preguntar - Haz tu consulta en lenguaje natural';
-            }
-            
-            saveResponseBtn.style.display = 'none';
-        }
-
-        function handleTextInput() {
-            const text = mainTextarea.value;
-            
-            // Contar tokens aproximados
-            const tokenCount = Math.ceil(text.length / 4);
-            document.getElementById('tokenCount').textContent = `Tokens: ~${tokenCount}`;
-            
-            // Procesar comandos
-            if (text.startsWith('/')) {
-                processCommand(text);
-            }
-            
-            // Auto-extraer metadatos
-            if (currentMode === 'add') {
-                extractMetadata(text);
-            }
-        }
-
-        function processCommand(text) {
-            const command = text.toLowerCase().trim();
-            
-            if (command === '/add') {
-                document.querySelector('[data-mode="add"]').click();
-                mainTextarea.value = '';
-            } else if (command === '/ask') {
-                document.querySelector('[data-mode="ask"]').click();
-                mainTextarea.value = '';
-            } else if (command === '/std') {
-                tenantSelect.value = 'STANDARD';
-                scopeSelect.value = 'STANDARD';
-                mainTextarea.value = '';
-            } else if (command.startsWith('/tenant ')) {
-                const tenant = command.replace('/tenant ', '').toUpperCase();
-                tenantSelect.value = tenant;
-                mainTextarea.value = '';
-            }
-        }
-
-        function extractMetadata(text) {
-            // Extraer t-codes
-            const tcodes = text.match(/\b[A-Z]{2}\d{2}\b/g) || [];
-            if (tcodes.length > 0) {
-                document.getElementById('tcodesInput').value = [...new Set(tcodes)].join(', ');
-            }
-            
-            // Extraer tablas
-            const tables = text.match(/\b[A-Z][A-Z0-9_]{3,}\b/g) || [];
-            const filteredTables = tables.filter(t => t.length >= 4 && t.length <= 10);
-            if (filteredTables.length > 0) {
-                document.getElementById('tablesInput').value = [...new Set(filteredTables)].join(', ');
-            }
-            
-            // Inferir tema
-            const textLower = text.toLowerCase();
-            if (textLower.includes('factura') || textLower.includes('billing')) {
-                document.getElementById('topicInput').value = 'billing';
-            } else if (textLower.includes('alta') || textLower.includes('move-in')) {
-                document.getElementById('topicInput').value = 'move-in';
-            } else if (textLower.includes('aparato') || textLower.includes('device')) {
-                document.getElementById('topicInput').value = 'device-management';
-            }
-        }
-
-        async function handleExecute() {
-            const text = mainTextarea.value.trim();
-            
-            if (!text) {
-                showError('Por favor, ingresa algún contenido');
-                return;
-            }
-            
-            showLoading();
-            localStorage.setItem('sapisu_tenant', tenantSelect.value);
-            
             try {
-                if (currentMode === 'add') {
-                    await handleIngest(text);
-                } else {
-                    await handleQuery(text);
-                }
-            } catch (error) {
-                showError(`Error: ${error.message}`);
-            }
-        }
-
-        async function handleIngest(text) {
-            const data = {
-                tenant_slug: tenantSelect.value,
-                scope: scopeSelect.value,
-                text: text,
-                source: selectedFile ? `file:${selectedFile.name}` : 'manual',
-                metadata: {
-                    system: document.getElementById('systemInput').value || null,
-                    topic: document.getElementById('topicInput').value || null,
-                    tcodes: document.getElementById('tcodesInput').value.split(',').map(s => s.trim()).filter(Boolean),
-                    tables: document.getElementById('tablesInput').value.split(',').map(s => s.trim()).filter(Boolean)
-                }
-            };
-            
-            const response = await fetch(`${API_BASE}/ingest/text`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-                },
-                body: JSON.stringify(data)
-            });
-            
-            if (response.status === 401) {
-                await handleLogin();
-                return handleIngest(text);
-            }
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Error en la ingesta');
-            }
-            
-            const result = await response.json();
-            showIngestResult(result);
-            addToHistory({
-                type: 'ingest',
-                text: text.substring(0, 100) + '...',
-                result: result,
-                timestamp: new Date()
-            });
-        }
-
-        async function handleQuery(text) {
-            const data = {
-                tenant_slug: tenantSelect.value,
-                query: text,
-                include_trace: true
-            };
-            
-            const response = await fetch(`${API_BASE}/search/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-                },
-                body: JSON.stringify(data)
-            });
-            
-            if (response.status === 401) {
-                await handleLogin();
-                return handleQuery(text);
-            }
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Error en la consulta');
-            }
-            
-            const result = await response.json();
-            showQueryResult(result);
-            addToHistory({
-                type: 'query',
-                text: text,
-                result: result,
-                timestamp: new Date()
-            });
-        }
-
-        async function handleLogin() {
-            // Login simple - en producción usar formulario apropiado
-            const credentials = {
-                email: 'admin@sapisu.local',
-                password: 'admin123'
-            };
-            
-            const response = await fetch(`${API_BASE}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(credentials)
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                authToken = data.access_token;
-                document.getElementById('connectionStatus').textContent = '🟢 Autenticado';
-            } else {
-                throw new Error('Error de autenticación');
-            }
-        }
-
-        function showIngestResult(result) {
-            const html = `
-                <div class="success">
-                    <h3>✅ Documento procesado exitosamente</h3>
-                    <p><strong>ID:</strong> ${result.id}</p>
-                    <p><strong>Título:</strong> ${result.title || 'Sin título'}</p>
-                    <p><strong>Sistema:</strong> ${result.system || 'N/A'}</p>
-                    <p><strong>Tema:</strong> ${result.topic || 'N/A'}</p>
-                    <p><strong>T-codes:</strong> ${result.tcodes.join(', ') || 'Ninguno'}</p>
-                    <p><strong>Tablas:</strong> ${result.tables.join(', ') || 'Ninguna'}</p>
-                    <p><strong>Chunks:</strong> ${result.chunks_count}</p>
-                    <p><strong>Scope:</strong> ${result.scope}</p>
-                    ${result.warnings.length > 0 ? `<div style="margin-top: 10px; color: #856404;"><strong>Avisos:</strong><ul>${result.warnings.map(w => `<li>${w}</li>`).join('')}</ul></div>` : ''}
-                </div>
-            `;
-            
-            resultArea.innerHTML = html;
-            statusText.textContent = '✅ Documento procesado exitosamente';
-        }
-
-        function showQueryResult(result) {
-            const confidenceColor = result.confidence > 0.7 ? '#28a745' : result.confidence > 0.4 ? '#ffc107' : '#dc3545';
-            
-            const html = `
-                <div>
-                    <div style="margin-bottom: 15px; padding: 10px; background: #e7f3ff; border-radius: 5px;">
-                        <strong>Confianza:</strong> 
-                        <span style="color: ${confidenceColor}; font-weight: bold;">${Math.round(result.confidence * 100)}%</span>
-                        <span style="float: right; color: #6c757d;">${result.response_time_ms}ms</span>
-                    </div>
-                    
-                    <div style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6; line-height: 1.6;">
-                        ${result.answer.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
-                    </div>
-                    
-                    ${result.sources.length > 0 ? `
-                        <div class="sources">
-                            <h4>📚 Fuentes consultadas:</h4>
-                            ${result.sources.map(source => `
-                                <div class="source-item">
-                                    <strong>${source.title || 'Sin título'}</strong><br>
-                                    <small>Tenant: ${source.tenant} | Scope: ${source.scope} | Relevancia: ${Math.round(source.relevance_score * 100)}%</small>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                    
-                    ${result.needs_clarification ? `
-                        <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 5px;">
-                            <strong>💡 Se necesita más información:</strong>
-                            <ul>${result.clarification_questions.map(q => `<li>${q}</li>`).join('')}</ul>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-            
-            resultArea.innerHTML = html;
-            statusText.textContent = `✅ Consulta procesada - Confianza: ${Math.round(result.confidence * 100)}%`;
-            
-            // Mostrar botón para guardar respuesta
-            if (result.confidence > 0.6) {
-                saveResponseBtn.style.display = 'inline-block';
-                saveResponseBtn.onclick = () => handleSaveResponse(result.answer);
-            }
-        }
-
-        async function handleSaveResponse(responseText) {
-            const title = prompt('Título para guardar esta respuesta:', 'Respuesta útil SAP IS-U');
-            if (!title) return;
-            
-            try {
-                const response = await fetch(`${API_BASE}/search/save-response`, {
+                const response = await fetch('/search/chat-public', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        ...(authToken && { 'Authorization': `Bearer ${authToken}` })
                     },
                     body: JSON.stringify({
-                        response_text: responseText,
-                        title: title,
-                        tenant_slug: tenantSelect.value
+                        query: message,
+                        client_id: 'default'
                     })
                 });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    showSuccess(`Respuesta guardada como documento STANDARD: ${result.document_id}`);
-                } else {
-                    throw new Error('Error al guardar');
+
+                hideTypingIndicator();
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
                 }
+
+                const data = await response.json();
+                addMessageToChat(data.response || 'No se recibió respuesta del servidor.');
+
             } catch (error) {
-                showError(`Error al guardar: ${error.message}`);
+                hideTypingIndicator();
+                console.error('Error:', error);
+                addMessageToChat(
+                    `Error de conexión: ${error.message}. Verifica que el servidor esté ejecutándose en http://localhost:8000`,
+                    false,
+                    true
+                );
+            } finally {
+                sendButton.disabled = false;
+                messageInput.focus();
             }
         }
 
-        function handleClear() {
-            mainTextarea.value = '';
-            selectedFile = null;
-            fileInfo.style.display = 'none';
-            
-            // Limpiar metadatos
-            document.getElementById('systemInput').value = 'IS-U';
-            document.getElementById('topicInput').value = '';
-            document.getElementById('tcodesInput').value = '';
-            document.getElementById('tablesInput').value = '';
-            
-            resultArea.innerHTML = `
-                <div style="text-align: center; color: #6c757d; padding: 50px;">
-                    <h3>🧹 Limpiado</h3>
-                    <p>Listo para nueva consulta o incidencia.</p>
-                </div>
-            `;
-            
-            statusText.textContent = '🧹 Contenido limpiado - Listo para nueva entrada';
-            document.getElementById('tokenCount').textContent = 'Tokens: 0';
-        }
-
-        function handleKeydown(event) {
-            if (event.ctrlKey && event.key === 'Enter') {
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
-                handleExecute();
+                sendMessage();
             }
         }
 
-        function handleGlobalKeydown(event) {
-            if (event.ctrlKey) {
-                if (event.key === '1') {
-                    event.preventDefault();
-                    document.querySelector('[data-mode="add"]').click();
-                } else if (event.key === '2') {
-                    event.preventDefault();
-                    document.querySelector('[data-mode="ask"]').click();
-                }
-            }
-        }
+        async function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-        // Drag & Drop handlers
-        function handleDragOver(event) {
-            event.preventDefault();
-            mainTextarea.classList.add('dragover');
-        }
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('client_id', 'default');
 
-        function handleDragLeave(event) {
-            event.preventDefault();
-            mainTextarea.classList.remove('dragover');
-        }
-
-        function handleFileDrop(event) {
-            event.preventDefault();
-            mainTextarea.classList.remove('dragover');
-            
-            const files = event.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileSelect(files[0]);
-            }
-        }
-
-        function handleFileSelect(file) {
-            const allowedTypes = ['.pdf', '.docx', '.doc', '.md', '.txt', '.html'];
-            const fileExt = '.' + file.name.split('.').pop().toLowerCase();
-            
-            if (!allowedTypes.includes(fileExt)) {
-                showError(`Tipo de archivo no soportado: ${fileExt}`);
-                return;
-            }
-            
-            if (file.size > 10 * 1024 * 1024) { // 10MB
-                showError('Archivo muy grande (máximo 10MB)');
-                return;
-            }
-            
-            selectedFile = file;
-            
-            // Mostrar info del archivo
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileSize').textContent = formatFileSize(file.size);
-            fileInfo.style.display = 'block';
-            
-            // Leer contenido si es texto
-            if (fileExt === '.txt' || fileExt === '.md') {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    mainTextarea.value = e.target.result;
-                    handleTextInput();
-                };
-                reader.readAsText(file);
-            }
-            
-            statusText.textContent = `📎 Archivo seleccionado: ${file.name}`;
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-        }
-
-        function showLoading() {
-            resultArea.innerHTML = '<div class="loading">Procesando...</div>';
-            executeBtn.disabled = true;
-            statusText.textContent = '⏳ Procesando solicitud...';
-        }
-
-        function showError(message) {
-            resultArea.innerHTML = `<div class="error"><strong>❌ Error:</strong> ${message}</div>`;
-            executeBtn.disabled = false;
-            statusText.textContent = '❌ Error en la operación';
-        }
-
-        function showSuccess(message) {
-            const successDiv = document.createElement('div');
-            successDiv.className = 'success';
-            successDiv.innerHTML = `<strong>✅ Éxito:</strong> ${message}`;
-            resultArea.insertBefore(successDiv, resultArea.firstChild);
-            setTimeout(() => successDiv.remove(), 5000);
-        }
-
-        function addToHistory(item) {
-            history.unshift(item);
-            if (history.length > 20) history.pop();
-            localStorage.setItem('sapisu_history', JSON.stringify(history));
-            loadHistory();
-        }
-
-        function loadHistory() {
-            if (history.length === 0) {
-                historyPanel.style.display = 'none';
-                return;
-            }
-            
-            historyPanel.style.display = 'block';
-            historyItems.innerHTML = history.map((item, index) => `
-                <div class="history-item" onclick="loadHistoryItem(${index})">
-                    <div style="font-weight: bold; color: ${item.type === 'ingest' ? '#007bff' : '#28a745'}">
-                        ${item.type === 'ingest' ? '📝' : '❓'} ${item.type.toUpperCase()}
-                    </div>
-                    <div style="font-size: 0.9rem; color: #6c757d; margin: 2px 0;">
-                        ${new Date(item.timestamp).toLocaleString()}
-                    </div>
-                    <div style="font-size: 0.9rem;">
-                        ${item.text.length > 60 ? item.text.substring(0, 60) + '...' : item.text}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function loadHistoryItem(index) {
-            const item = history[index];
-            mainTextarea.value = item.text;
-            
-            if (item.type === 'ingest') {
-                document.querySelector('[data-mode="add"]').click();
-                if (item.result) {
-                    showIngestResult(item.result);
-                }
-            } else {
-                document.querySelector('[data-mode="ask"]').click();
-                if (item.result) {
-                    showQueryResult(item.result);
-                }
-            }
-        }
-
-        async function checkConnection() {
             try {
-                const response = await fetch('/health');
-                if (response.ok) {
-                    document.getElementById('connectionStatus').textContent = '🟢 Conectado';
-                } else {
-                    document.getElementById('connectionStatus').textContent = '🟡 Parcial';
+                addMessageToChat(`📎 Subiendo archivo: ${file.name}`, true);
+                showTypingIndicator();
+
+                const response = await fetch('/ingest/text-public', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                hideTypingIndicator();
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
                 }
+
+                const data = await response.json();
+                addMessageToChat(`✅ Archivo procesado correctamente: ${file.name}`);
+
             } catch (error) {
-                document.getElementById('connectionStatus').textContent = '🔴 Desconectado';
+                hideTypingIndicator();
+                console.error('Error:', error);
+                addMessageToChat(
+                    `❌ Error al procesar el archivo: ${error.message}`,
+                    false,
+                    true
+                );
             }
+
+            // Reset file input
+            event.target.value = '';
         }
 
-        // Verificar conexión cada 30 segundos
-        setInterval(checkConnection, 30000);
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Focus on input when page loads
+        window.addEventListener('load', () => {
+            messageInput.focus();
+        });
     </script>
 </body>
 </html>

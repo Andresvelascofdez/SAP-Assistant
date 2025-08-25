@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki Inteligente SAP IS-U</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f7f7f8;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .version {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .controls {
+            background: white;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+        }
+
+        .btn-mini {
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .btn-mini:hover {
+            background: #f3f4f6;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f7f7f8;
+        }
+
+        .message {
+            margin: 20px 0;
+            display: flex;
+            align-items: flex-start;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 16px 20px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .message.user .message-content {
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #374151;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .input-container {
+            background: white;
+            border-top: 1px solid #e5e5e5;
+            padding: 20px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .attach-button {
+            background: #6b7280;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .attach-button:hover {
+            background: #4b5563;
+            transform: scale(1.05);
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+            background: white;
+            border: 2px solid #e5e5e5;
+            border-radius: 24px;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #007bff;
+        }
+
+        #chatInput {
+            width: 100%;
+            min-height: 24px;
+            max-height: 200px;
+            padding: 12px 60px 12px 20px;
+            border: none;
+            border-radius: 22px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            background: transparent;
+        }
+
+        .send-button {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #007bff;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #0056b3;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .send-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: translateY(-50%);
+        }
+
+        .selected-files {
+            margin-top: 12px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            margin: 4px 0;
+        }
+
+        .file-item .remove-file {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .status-bar {
+            background: #374151;
+            color: white;
+            padding: 8px 20px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        code {
+            background: #f1f3f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+        }
+
+        .message.assistant strong {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .control-group {
+                justify-content: space-between;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .header h1 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 Wiki Inteligente SAP IS-U</h1>
+        <div class="version">v1.0.0</div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="tenantSelect">Cliente:</label>
+            <select id="tenantSelect">
+                <option value="STANDARD">STANDARD</option>
+                <option value="CLIENT_A">Cliente A</option>
+                <option value="CLIENT_B">Cliente B</option>
+            </select>
+            <button class="btn-mini" onclick="addNewClient()" title="Añadir Cliente">➕</button>
+            <button class="btn-mini" onclick="deleteClient()" title="Eliminar Cliente">🗑️</button>
+            <button class="btn-mini" onclick="refreshClients()" title="Actualizar Lista">🔄</button>
+        </div>
+
+        <div class="control-group">
+            <label for="scopeSelect">Scope:</label>
+            <select id="scopeSelect">
+                <option value="STANDARD">STANDARD</option>
+                <option value="CLIENT_SPECIFIC">CLIENT_SPECIFIC</option>
+            </select>
+        </div>
+
+        <div class="mode-toggle">
+            <button class="mode-btn" data-mode="add">📝 Añadir</button>
+            <button class="mode-btn active" data-mode="ask">💬 Chat</button>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+                <div class="message-content">
+                    ¡Hola! Soy tu asistente SAP IS-U inteligente. Puedo ayudarte con:
+                    <br><br>
+                    • <strong>Consultas técnicas</strong> sobre transacciones, errores y procesos
+                    • <strong>Análisis de documentos</strong> PDF, Word, y otros formatos
+                    • <strong>Resolución de incidencias</strong> paso a paso
+                    • <strong>Mejores prácticas</strong> en SAP IS-U
+                    <br><br>
+                    ¿En qué puedo ayudarte hoy?
+                </div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <div class="input-area">
+                <button class="attach-button" onclick="document.getElementById('fileInput').click()" title="Adjuntar archivo">
+                    📎
+                </button>
+                <div class="input-wrapper">
+                    <textarea 
+                        id="chatInput" 
+                        placeholder="Escribe tu pregunta sobre SAP IS-U..."
+                        onkeydown="handleKeyPress(event)"
+                        oninput="adjustTextareaHeight()"
+                    ></textarea>
+                    <button class="send-button" onclick="sendMessage()" id="sendButton">
+                        ➤
+                    </button>
+                </div>
+            </div>
+            
+            <input type="file" id="fileInput" style="display: none" multiple accept=".pdf,.doc,.docx,.txt,.md" onchange="handleFileSelect(event)">
+            
+            <div id="selectedFiles" class="selected-files"></div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div id="statusText">💬 Modo Chat - Haz tu consulta en lenguaje natural</div>
+        <div id="statusInfo">
+            <span id="connectionStatus">🟢 Conectado</span>
+        </div>
+    </div>
+
+    <script>
+        // Estado de la aplicación
+        let currentMode = 'ask';
+        let selectedFiles = [];
+        let history = JSON.parse(localStorage.getItem('sapisu_history') || '[]');
+
+        // Elementos DOM
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const tenantSelect = document.getElementById('tenantSelect');
+        const scopeSelect = document.getElementById('scopeSelect');
+        const sendButton = document.getElementById('sendButton');
+        const statusText = document.getElementById('statusText');
+        const selectedFilesDiv = document.getElementById('selectedFiles');
+
+        // Event Listeners
+        modeButtons.forEach(btn => btn.addEventListener('click', handleModeChange));
+        tenantSelect.addEventListener('change', () => {
+            localStorage.setItem('sapisu_tenant', tenantSelect.value);
+        });
+
+        // Inicialización
+        window.addEventListener('load', function() {
+            // Cargar tenant guardado
+            const savedTenant = localStorage.getItem('sapisu_tenant');
+            if (savedTenant) {
+                tenantSelect.value = savedTenant;
+            }
+            
+            // Focus en el input
+            chatInput.focus();
+            
+            // Verificar conexión
+            checkConnection();
+        });
+
+        function handleModeChange(event) {
+            const newMode = event.target.dataset.mode;
+            currentMode = newMode;
+            
+            // Actualizar botones
+            modeButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Actualizar UI
+            if (currentMode === 'add') {
+                chatInput.placeholder = '📝 Describe el contenido que quieres añadir a la base de conocimientos...';
+                statusText.textContent = '📝 Modo Añadir - Agrega información a la base de conocimientos';
+            } else {
+                chatInput.placeholder = 'Escribe tu pregunta sobre SAP IS-U...';
+                statusText.textContent = '💬 Modo Chat - Haz tu consulta en lenguaje natural';
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function adjustTextareaHeight() {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
+        }
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            selectedFiles = [...selectedFiles, ...files];
+            updateSelectedFilesDisplay();
+            event.target.value = ''; // Reset input
+        }
+
+        function updateSelectedFilesDisplay() {
+            selectedFilesDiv.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'file-item';
+                fileDiv.innerHTML = `
+                    <span>📎 ${file.name} (${formatFileSize(file.size)})</span>
+                    <button class="remove-file" onclick="removeFile(${index})">✕</button>
+                `;
+                selectedFilesDiv.appendChild(fileDiv);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateSelectedFilesDisplay();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message && selectedFiles.length === 0) return;
+
+            // Deshabilitar envío
+            sendButton.disabled = true;
+            chatInput.disabled = true;
+
+            try {
+                // Añadir mensaje del usuario
+                if (message) {
+                    addMessageToChat('user', message);
+                }
+
+                // Mostrar archivos si los hay
+                if (selectedFiles.length > 0) {
+                    const fileNames = selectedFiles.map(f => f.name).join(', ');
+                    addMessageToChat('user', `📎 Archivos: ${fileNames}`, true);
+                }
+
+                // Limpiar input
+                const currentMessage = message;
+                const currentFiles = [...selectedFiles];
+                chatInput.value = '';
+                selectedFiles = [];
+                updateSelectedFilesDisplay();
+                adjustTextareaHeight();
+
+                // Mostrar indicador de escritura
+                const typingId = showTypingIndicator();
+
+                // Procesar según el modo
+                if (currentMode === 'add') {
+                    await handleIngestMessage(currentMessage, currentFiles, typingId);
+                } else {
+                    await handleChatMessage(currentMessage, currentFiles, typingId);
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                addMessageToChat('assistant', `❌ Error: ${error.message}`);
+                hideTypingIndicator();
+            } finally {
+                // Rehabilitar envío
+                sendButton.disabled = false;
+                chatInput.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        async function handleChatMessage(message, files, typingId) {
+            const tenant = tenantSelect.value;
+            
+            const response = await fetch('http://localhost:8000/search/chat-public', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: message,
+                    tenant: tenant,
+                    max_results: 5
+                })
+            });
+
+            hideTypingIndicator(typingId);
+
+            if (!response.ok) {
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
+
+            const data = await response.json();
+            addMessageToChat('assistant', data.response);
+            
+            // Guardar en historial
+            saveToHistory(message, data.response);
+        }
+
+        async function handleIngestMessage(message, files, typingId) {
+            const tenant = tenantSelect.value;
+            const scope = scopeSelect.value;
+            
+            let results = [];
+
+            // Procesar archivos si los hay
+            if (files.length > 0) {
+                for (const file of files) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('tenant', tenant);
+                    formData.append('scope', scope);
+                    
+                    const response = await fetch('http://localhost:8000/ingest/file-public', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error procesando ${file.name}: ${response.status}`);
+                    }
+                    
+                    results.push(`✅ ${file.name} procesado correctamente`);
+                }
+            }
+
+            // Procesar texto si hay
+            if (message) {
+                const response = await fetch('http://localhost:8000/ingest/text-public', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: message,
+                        tenant: tenant,
+                        scope: scope,
+                        metadata: {
+                            system: 'IS-U',
+                            source: 'manual_input'
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error del servidor: ${response.status}`);
+                }
+                
+                results.push('✅ Texto añadido a la base de conocimientos');
+            }
+
+            hideTypingIndicator(typingId);
+            
+            // Mostrar confirmación
+            const resultText = results.join('<br>');
+            addMessageToChat('assistant', `${resultText}<br><br>La información ha sido indexada y estará disponible para futuras consultas.`);
+        }
+
+        function addMessageToChat(sender, content, isFileInfo = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            if (isFileInfo) {
+                contentDiv.style.fontSize = '0.9em';
+                contentDiv.style.opacity = '0.8';
+            }
+            
+            contentDiv.innerHTML = formatMessage(content);
+            messageDiv.appendChild(contentDiv);
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message assistant';
+            typingDiv.id = 'typing-indicator';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content typing-indicator';
+            contentDiv.innerHTML = `
+                Escribiendo
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            
+            typingDiv.appendChild(contentDiv);
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return 'typing-indicator';
+        }
+
+        function hideTypingIndicator(id) {
+            const typingElement = document.getElementById(id || 'typing-indicator');
+            if (typingElement) {
+                typingElement.remove();
+            }
+        }
+
+        function formatMessage(content) {
+            // Convertir URLs a enlaces
+            content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color: #007bff;">$1</a>');
+            
+            // Convertir saltos de línea a <br>
+            content = content.replace(/\n/g, '<br>');
+            
+            // Resaltar códigos de transacción SAP
+            content = content.replace(/\b([A-Z]{2}\d{2})\b/g, '<code>$1</code>');
+            
+            // Resaltar tablas SAP (3-8 letras mayúsculas)
+            content = content.replace(/\b([A-Z]{3,8})\b(?![A-Z])/g, '<strong>$1</strong>');
+            
+            return content;
+        }
+
+        function saveToHistory(question, answer) {
+            const entry = {
+                id: Date.now(),
+                question: question,
+                answer: answer,
+                timestamp: new Date().toISOString(),
+                tenant: tenantSelect.value
+            };
+            
+            history.unshift(entry);
+            history = history.slice(0, 50); // Mantener solo los últimos 50
+            localStorage.setItem('sapisu_history', JSON.stringify(history));
+        }
+
+        async function checkConnection() {
+            try {
+                const response = await fetch('http://localhost:8000/health', {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    document.getElementById('connectionStatus').textContent = '🟢 Conectado';
+                } else {
+                    document.getElementById('connectionStatus').textContent = '🟡 Conectado con problemas';
+                }
+            } catch (error) {
+                document.getElementById('connectionStatus').textContent = '🔴 Sin conexión';
+            }
+        }
+
+        // Funciones de gestión de clientes
+        async function addNewClient() {
+            const clientName = prompt('Nombre del nuevo cliente:');
+            if (clientName) {
+                const option = document.createElement('option');
+                option.value = clientName.toUpperCase();
+                option.textContent = clientName;
+                tenantSelect.appendChild(option);
+                tenantSelect.value = clientName.toUpperCase();
+            }
+        }
+
+        async function deleteClient() {
+            if (tenantSelect.value === 'STANDARD') {
+                alert('No se puede eliminar el cliente STANDARD');
+                return;
+            }
+            
+            if (confirm(`¿Eliminar cliente ${tenantSelect.value}?`)) {
+                const selectedOption = tenantSelect.querySelector(`option[value="${tenantSelect.value}"]`);
+                if (selectedOption) {
+                    selectedOption.remove();
+                    tenantSelect.value = 'STANDARD';
+                }
+            }
+        }
+
+        async function refreshClients() {
+            // Aquí podrías hacer una llamada a la API para obtener la lista actualizada
+            addMessageToChat('assistant', '📋 Lista de clientes actualizada');
+        }
+
+        // Verificar conexión periódicamente
+        setInterval(checkConnection, 30000);
+    </script>
+</body>
+</html>

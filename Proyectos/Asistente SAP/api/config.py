@@ -4,6 +4,7 @@ Wiki Inteligente SAP IS-U
 """
 from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -11,6 +12,7 @@ class Settings(BaseSettings):
     
     # Base de datos
     database_url: str = "postgresql+asyncpg://postgres:changeme@localhost:5432/sapisu"
+    postgres_password: str = "changeme"
     
     # Qdrant
     qdrant_url: str = "http://localhost:6333"
@@ -34,9 +36,27 @@ class Settings(BaseSettings):
     api_log_level: str = "info"
     
     # CORS
-    allowed_origins: List[str] = ["http://localhost:3000", "http://localhost:8000"]
-    allowed_methods: List[str] = ["GET", "POST", "PUT", "DELETE", "PATCH"]
-    allowed_headers: List[str] = ["*"]
+    allowed_origins: str = "http://localhost:3000,http://localhost:8000"
+    allowed_methods: str = "GET,POST,PUT,DELETE,PATCH"
+    allowed_headers: str = "*"
+    
+    @field_validator('allowed_origins')
+    def parse_cors_origins(cls, v):
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(',')]
+        return v
+    
+    @field_validator('allowed_methods')
+    def parse_cors_methods(cls, v):
+        if isinstance(v, str):
+            return [method.strip() for method in v.split(',')]
+        return v
+    
+    @field_validator('allowed_headers')
+    def parse_cors_headers(cls, v):
+        if isinstance(v, str):
+            return [header.strip() for header in v.split(',')]
+        return v
     
     # Rate limiting
     rate_limit_requests: int = 100

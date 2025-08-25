@@ -10,8 +10,8 @@ from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.config import settings
-from api.utils.logging import get_logger
+from ..config import settings
+from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
 

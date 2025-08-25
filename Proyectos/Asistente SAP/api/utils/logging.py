@@ -6,7 +6,7 @@ import logging
 import sys
 from typing import Any, Dict
 import structlog
-from api.config import settings
+from ..config import settings
 
 
 def configure_logging():

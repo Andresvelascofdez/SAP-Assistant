@@ -8,14 +8,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
-from api.db.database import get_db
-from api.db.models import User, Document, Chunk, Tenant, EvalRun
-from api.models.schemas import (
+from ..db.database import get_db
+from ..db.models import User, Document, Chunk, Tenant, EvalRun
+from ..models.schemas import (
     HealthCheck, SystemMetrics, TenantCreate, TenantResponse,
     EvalRunResponse
 )
-from api.services.auth import require_admin
-from api.utils.logging import get_logger
+from ..services.auth import require_admin
+from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/admin", tags=["Administration"])

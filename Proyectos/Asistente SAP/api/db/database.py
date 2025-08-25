@@ -4,7 +4,7 @@ Wiki Inteligente SAP IS-U
 """
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
-from api.config import settings
+from ..config import settings
 
 # Motor de base de datos
 engine = create_async_engine(

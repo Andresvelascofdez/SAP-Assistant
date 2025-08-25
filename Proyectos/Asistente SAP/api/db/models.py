@@ -146,7 +146,7 @@ class AuditLog(Base):
     action = Column(String(50), nullable=False)  # ingest, search, chat, admin
     resource_type = Column(String(50))  # document, query, etc.
     resource_id = Column(String(100))
-    metadata = Column(JSON)  # datos adicionales sin info sensible
+    extra_data = Column(JSON)  # datos adicionales sin info sensible
     ip_address = Column(String(45))
     user_agent = Column(Text)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())

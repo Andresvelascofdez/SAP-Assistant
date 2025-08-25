@@ -8,11 +8,20 @@ from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from api.db.database import get_db
-from api.db.models import User, Tenant
-from api.models.schemas import UserLogin, UserCreate, UserResponse, Token
-from api.services.auth import AuthService
-from api.utils.logging import get_logger
+from ..db.database import get_db
+from ..db.models import User, Tenant
+from ..models.schemas import UserLogin, UserCreate, UserResponse, Token
+from ..services.auth import (
+    get_current_active_user,
+    authenticate_user,
+    create_access_token,
+    create_refresh_token,
+    get_password_hash,
+    verify_token,
+    get_user_by_id,
+    require_admin
+)
+from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -25,7 +34,7 @@ async def login(
     db: AsyncSession = Depends(get_db)
 ):
     """Autenticar usuario y generar tokens"""
-    user = await AuthService.authenticate_user(credentials.email, credentials.password, db)
+    user = await authenticate_user(credentials.email, credentials.password, db)
     
     if not user:
         raise HTTPException(
@@ -51,8 +60,8 @@ async def login(
         "tenant_slug": tenant_slug
     }
     
-    access_token = AuthService.create_access_token(token_data)
-    refresh_token = AuthService.create_refresh_token(token_data)
+    access_token = create_access_token(token_data)
+    refresh_token = create_refresh_token(token_data)
     
     logger.info("User logged in", user_id=str(user.id), email=user.email)
     
@@ -69,7 +78,7 @@ async def refresh_token(
     db: AsyncSession = Depends(get_db)
 ):
     """Refrescar token de acceso"""
-    token_data = AuthService.verify_token(refresh_token)
+    token_data = verify_token(refresh_token)
     
     if not token_data:
         raise HTTPException(
@@ -78,7 +87,7 @@ async def refresh_token(
         )
     
     # Verificar que el usuario sigue activo
-    user = await AuthService.get_user_by_id(str(token_data.user_id), db)
+    user = await get_user_by_id(str(token_data.user_id), db)
     if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -93,8 +102,8 @@ async def refresh_token(
         "tenant_slug": token_data.tenant_slug
     }
     
-    new_access_token = AuthService.create_access_token(new_token_data)
-    new_refresh_token = AuthService.create_refresh_token(new_token_data)
+    new_access_token = create_access_token(new_token_data)
+    new_refresh_token = create_refresh_token(new_token_data)
     
     return Token(
         access_token=new_access_token,
@@ -105,7 +114,7 @@ async def refresh_token(
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(
-    current_user: User = Depends(AuthService.get_current_active_user)
+    current_user: User = Depends(get_current_active_user)
 ):
     """Obtener información del usuario actual"""
     tenant_slug = None
@@ -127,7 +136,7 @@ async def get_current_user_info(
 async def register_user(
     user_data: UserCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(AuthService.require_admin)
+    current_user: User = Depends(require_admin)
 ):
     """Registrar nuevo usuario (solo admins)"""
     # Verificar que el email no existe
@@ -155,7 +164,7 @@ async def register_user(
             )
     
     # Crear usuario
-    hashed_password = AuthService.get_password_hash(user_data.password)
+    hashed_password = get_password_hash(user_data.password)
     new_user = User(
         email=user_data.email,
         hashed_password=hashed_password,

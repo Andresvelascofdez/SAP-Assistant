@@ -11,10 +11,10 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from api.config import settings
-from api.db.database import get_db
-from api.db.models import User, Tenant
-from api.models.schemas import TokenData
+from ..config import settings
+from ..db.database import get_db
+from ..db.models import User, Tenant
+from ..models.schemas import TokenData
 
 # Configuración de encriptación
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -159,3 +159,33 @@ def require_tenant_access(tenant_slug: str):
         return current_user
     
     return _verify_tenant_access
+
+
+# Funciones standalone para compatibilidad
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verificar contraseña"""
+    return AuthService.verify_password(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    """Hashear contraseña"""
+    return AuthService.get_password_hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Crear token de acceso"""
+    return AuthService.create_access_token(data, expires_delta)
+
+def create_refresh_token(data: dict) -> str:
+    """Crear token de refresco"""
+    return AuthService.create_refresh_token(data)
+
+def verify_token(token: str) -> Optional[TokenData]:
+    """Verificar y decodificar token"""
+    return AuthService.verify_token(token)
+
+async def authenticate_user(email: str, password: str, db: AsyncSession) -> Optional[User]:
+    """Autenticar usuario"""
+    return await AuthService.authenticate_user(email, password, db)
+
+async def get_user_by_id(user_id: str, db: AsyncSession) -> Optional[User]:
+    """Obtener usuario por ID"""
+    return await AuthService.get_user_by_id(user_id, db)

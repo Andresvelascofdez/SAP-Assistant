@@ -7,16 +7,16 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.database import get_db
-from api.db.models import User
-from api.models.schemas import (
+from ..db.database import get_db
+from ..db.models import User
+from ..models.schemas import (
     DocumentIngest, DocumentResponse, DocumentDetail, DocumentList,
     FileProcessResult, ScopeEnum, DocumentTypeEnum
 )
-from api.services.auth import get_current_active_user, require_tenant_access
-from api.services.ingest import DocumentProcessor
-from api.utils.logging import get_logger
-from api.utils.parsers import FileParser
+from ..services.auth import get_current_active_user, require_tenant_access
+from ..services.ingest import DocumentProcessor
+from ..utils.logging import get_logger
+from ..utils.parsers import FileParser
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/ingest", tags=["Document Ingestion"])
@@ -47,6 +47,39 @@ async def ingest_text(
             document_id=str(result.id),
             tenant=document.tenant_slug,
             user_id=str(current_user.id)
+        )
+        
+        return result
+    
+    except Exception as e:
+        logger.error(f"Error ingesting document: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to ingest document: {str(e)}"
+        )
+
+
+@router.post("/text-public", response_model=DocumentResponse)
+async def ingest_text_public(
+    document: DocumentIngest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Ingestar documento de texto sin autenticación para uso personal"""
+    if not document.text or len(document.text.strip()) < 10:
+        raise HTTPException(
+            status_code=422,
+            detail="Text content is required and must be at least 10 characters"
+        )
+    
+    try:
+        processor = DocumentProcessor()
+        # Usar un user_id por defecto para uso personal
+        result = await processor.process_document(document, db, "personal-user")
+        
+        logger.info(
+            "Document ingested (public)",
+            document_id=str(result.id),
+            tenant=document.tenant_slug
         )
         
         return result

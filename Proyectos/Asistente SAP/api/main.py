@@ -6,6 +6,7 @@ import os
 import uuid
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -13,11 +14,11 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import time
 
-from api.config import settings
-from api.db.database import init_db
-from api.utils.logging import configure_logging, get_logger, add_request_context
-from api.routers import auth, ingest, search
-from api.routers.admin import router as admin_router
+from .config import settings
+from .db.database import init_db
+from .utils.logging import configure_logging, get_logger, add_request_context
+from .routers import auth, ingest, search
+from .routers.admin import router as admin_router
 
 # Configurar logging
 configure_logging()
@@ -158,10 +159,19 @@ app.include_router(ingest.router, prefix="/api/v1")
 app.include_router(search.router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 
+# Servir archivos estáticos
+web_directory = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web")
+if os.path.exists(web_directory):
+    app.mount("/static", StaticFiles(directory=web_directory), name="static")
+
 
 @app.get("/")
 async def root():
-    """Endpoint raíz"""
+    """Endpoint raíz - redirige a la interfaz web"""
+    from fastapi.responses import FileResponse
+    web_index = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web", "index.html")
+    if os.path.exists(web_index):
+        return FileResponse(web_index)
     return {
         "message": "Wiki Inteligente SAP IS-U API",
         "version": "1.0.0",
