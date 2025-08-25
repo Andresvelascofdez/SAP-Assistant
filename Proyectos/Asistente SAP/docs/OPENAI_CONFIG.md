@@ -2,7 +2,7 @@
 
 ## API Key Setup
 
-To configure the OpenAI API key for GPT-4.1, follow these steps:
+To configure the OpenAI API key for GPT-4o-mini, follow these steps:
 
 1. Copy `.env.example` to `.env`:
    ```bash
@@ -15,8 +15,21 @@ To configure the OpenAI API key for GPT-4.1, follow these steps:
    ```
 
 3. The system is pre-configured to use:
-   - **LLM Model**: `gpt-4.1-preview` (latest GPT-4 variant)
+   - **LLM Model**: `gpt-4o-mini` (cost-effective GPT-4 variant)
    - **Embedding Model**: `text-embedding-3-small`
+
+## Model Features
+
+### GPT-4o-mini Advantages
+- **Cost-effective**: Significantly lower costs than GPT-4
+- **Fast responses**: Optimized for speed
+- **High quality**: Maintains excellent reasoning capabilities
+- **SAP expertise**: Well-trained on technical documentation
+
+### Embedding Model
+- **text-embedding-3-small**: Optimized for semantic search
+- **1536 dimensions**: Perfect balance of accuracy and performance
+- **Multilingual**: Supports Spanish and English SAP terminology
 
 ## Security Notes
 
@@ -26,7 +39,7 @@ To configure the OpenAI API key for GPT-4.1, follow these steps:
 
 ## Model Configuration
 
-The system automatically uses GPT-4.1 for:
+The system automatically uses GPT-4o-mini for:
 - Conversational chat responses
 - Content structuring and metadata extraction
 - SAP IS-U technical question answering

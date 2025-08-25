@@ -318,3 +318,86 @@ async def list_documents(
         size=size,
         pages=(total + size - 1) // size
     )
+
+
+@router.post("/file-public", response_model=FileProcessResult)
+async def ingest_file_public(
+    file: UploadFile = File(...),
+    tenant_slug: str = Form("default"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Subir un archivo sin autenticación para uso personal"""
+    try:
+        # Validar tipo de archivo
+        if not FileParser.is_supported(file.filename):
+            raise HTTPException(
+                status_code=422,
+                detail=f"Tipo de archivo no soportado: {file.filename}"
+            )
+        
+        # Validar tamaño (máximo 10MB)
+        content = await file.read()
+        if len(content) > 10 * 1024 * 1024:
+            raise HTTPException(
+                status_code=422,
+                detail="File size exceeds 10MB limit"
+            )
+        
+        # Resetear el cursor del archivo
+        await file.seek(0)
+        
+        processor = DocumentProcessor()
+        file_parser = FileParser()
+        
+        # Parsear archivo
+        text_content = await file_parser.parse_file(file, content)
+        
+        if not text_content or len(text_content.strip()) < 10:
+            raise HTTPException(
+                status_code=422,
+                detail="No se pudo extraer contenido válido del archivo"
+            )
+        
+        # Crear documento para procesar
+        document_data = DocumentIngest(
+            text=text_content,
+            tenant_slug=tenant_slug,
+            scope=ScopeEnum.CLIENT_SPECIFIC,
+            document_type=DocumentTypeEnum.DOC,
+            title=file.filename,
+            source=file.filename
+        )
+        
+        # Procesar documento
+        result = await processor.process_document(
+            document_data, 
+            db, 
+            "personal-user"
+        )
+        
+        logger.info(
+            "File uploaded and processed (public)",
+            extra={
+                "filename": file.filename,
+                "tenant_slug": tenant_slug,
+                "document_id": str(result.id)
+            }
+        )
+        
+        return FileProcessResult(
+            filename=file.filename,
+            success=True,
+            document_id=result.id,
+            chunks_created=result.chunks_count,
+            message=f"Archivo {file.filename} procesado correctamente"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error processing file upload: {e}")
+        return FileProcessResult(
+            filename=file.filename if file else "unknown",
+            success=False,
+            error=str(e)
+        )

@@ -145,6 +145,144 @@
             cursor: not-allowed;
         }
 
+        .save-incidence-button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+            transition: background 0.2s;
+            height: fit-content;
+            align-self: flex-end;
+        }
+
+        .save-incidence-button:hover {
+            background: #1565c0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #40414f;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: #343541;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #ececf1;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #fff;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ececf1;
+            font-weight: 500;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #565869;
+            border-radius: 8px;
+            background: #343541;
+            color: #ececf1;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #19c37d;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .cancel-button {
+            background: #565869;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .cancel-button:hover {
+            background: #6b6c7b;
+        }
+
+        .save-button {
+            background: #19c37d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .save-button:hover {
+            background: #16a669;
+        }
+
         .file-input-wrapper {
             position: relative;
             display: inline-block;
@@ -299,6 +437,70 @@
                 <button id="sendButton" class="send-button" onclick="sendMessage()">
                     Enviar
                 </button>
+                <button id="saveIncidenceButton" class="save-incidence-button" onclick="showSaveIncidenceModal()">
+                    💾 Guardar Incidencia
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para guardar incidencia -->
+    <div id="saveIncidenceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Guardar Nueva Incidencia</h3>
+                <span class="close" onclick="closeSaveIncidenceModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="incidenceForm">
+                    <div class="form-group">
+                        <label for="incidenceTitle">Título de la Incidencia:</label>
+                        <input type="text" id="incidenceTitle" class="form-input" placeholder="Ej: Error en facturación automática" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="incidenceSystem">Sistema SAP:</label>
+                        <select id="incidenceSystem" class="form-input">
+                            <option value="IS-U">IS-U</option>
+                            <option value="CRM">CRM</option>
+                            <option value="FI">FI</option>
+                            <option value="SD">SD</option>
+                            <option value="OTHER">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="incidenceTopic">Tema:</label>
+                        <select id="incidenceTopic" class="form-input">
+                            <option value="billing">Facturación</option>
+                            <option value="move-in">Alta de Suministro</option>
+                            <option value="move-out">Baja de Suministro</option>
+                            <option value="reading">Lecturas</option>
+                            <option value="dunning">Recobro</option>
+                            <option value="master-data">Datos Maestros</option>
+                            <option value="reporting">Reporting</option>
+                            <option value="other">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="incidenceContent">Descripción de la Incidencia:</label>
+                        <textarea id="incidenceContent" class="form-textarea" 
+                                placeholder="Describe la incidencia, causa raíz, pasos de solución, etc." 
+                                rows="10" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="incidenceTags">Tags (separados por comas):</label>
+                        <input type="text" id="incidenceTags" class="form-input" 
+                               placeholder="Ej: EC85, EABLG, facturación, error">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" onclick="closeSaveIncidenceModal()" class="cancel-button">Cancelar</button>
+                        <button type="submit" class="save-button">Guardar Incidencia</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -360,14 +562,14 @@
             showTypingIndicator();
 
             try {
-                const response = await fetch('/search/chat-public', {
+                const response = await fetch('/api/v1/search/chat-public', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         query: message,
-                        client_id: 'default'
+                        tenant_slug: 'default'
                     })
                 });
 
@@ -378,7 +580,7 @@
                 }
 
                 const data = await response.json();
-                addMessageToChat(data.response || 'No se recibió respuesta del servidor.');
+                addMessageToChat(data.answer || 'No se recibió respuesta del servidor.');
 
             } catch (error) {
                 hideTypingIndicator();
@@ -407,13 +609,13 @@
 
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('client_id', 'default');
+            formData.append('tenant_slug', 'default');
 
             try {
                 addMessageToChat(`📎 Subiendo archivo: ${file.name}`, true);
                 showTypingIndicator();
 
-                const response = await fetch('/ingest/text-public', {
+                const response = await fetch('/api/v1/ingest/file-public', {
                     method: 'POST',
                     body: formData
                 });
@@ -450,6 +652,94 @@
         // Focus on input when page loads
         window.addEventListener('load', () => {
             messageInput.focus();
+        });
+
+        // Modal functions for saving incidences
+        function showSaveIncidenceModal() {
+            document.getElementById('saveIncidenceModal').style.display = 'block';
+        }
+
+        function closeSaveIncidenceModal() {
+            document.getElementById('saveIncidenceModal').style.display = 'none';
+            // Reset form
+            document.getElementById('incidenceForm').reset();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('saveIncidenceModal');
+            if (event.target == modal) {
+                closeSaveIncidenceModal();
+            }
+        }
+
+        // Handle incidence form submission
+        document.getElementById('incidenceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('incidenceTitle').value.trim();
+            const system = document.getElementById('incidenceSystem').value;
+            const topic = document.getElementById('incidenceTopic').value;
+            const content = document.getElementById('incidenceContent').value.trim();
+            const tagsInput = document.getElementById('incidenceTags').value.trim();
+            
+            if (!title || !content) {
+                alert('Por favor, completa al menos el título y la descripción.');
+                return;
+            }
+
+            const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+            
+            // Construir el contenido completo de la incidencia
+            const fullContent = `TÍTULO: ${title}
+
+SISTEMA: ${system}
+TEMA: ${topic}
+
+DESCRIPCIÓN:
+${content}
+
+TAGS: ${tags.join(', ')}
+
+FECHA: ${new Date().toLocaleString('es-ES')}`;
+
+            try {
+                const response = await fetch('/api/v1/ingest/text-public', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        tenant_slug: 'default',
+                        scope: 'CLIENT_SPECIFIC',
+                        type: 'incidencia',
+                        system: system,
+                        topic: topic,
+                        title: title,
+                        text: fullContent,
+                        tags: tags,
+                        source: 'chat-interface'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                // Show success message in chat
+                addMessageToChat(`✅ Incidencia guardada exitosamente: "${title}"`);
+                addMessageToChat(`📝 ID del documento: ${result.id}`);
+                addMessageToChat(`🎯 Sistema: ${system} | Tema: ${topic}`);
+                
+                // Close modal
+                closeSaveIncidenceModal();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert(`Error al guardar la incidencia: ${error.message}`);
+            }
         });
     </script>
 </body>

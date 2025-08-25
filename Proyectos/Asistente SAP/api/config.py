@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str
     embedding_model: str = "text-embedding-3-small"
-    llm_model: str = "gpt-4.1-preview"
+    llm_model: str = "gpt-4o-mini"
     
     # JWT
     jwt_secret: str
@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     # RAG settings
     top_k_initial: int = 30
     top_k_final: int = 5
+    rag_context_chunks: int = 5
     rerank_enabled: bool = False
     
     # Timezone

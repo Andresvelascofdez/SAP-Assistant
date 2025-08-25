@@ -4,6 +4,7 @@ Wiki Inteligente SAP IS-U
 """
 import time
 from typing import List, Dict, Any
+from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -73,22 +74,29 @@ async def chat_public(
             })
         
         # 3. Generar respuesta con LLM
-        llm_response = await llm_service.generate_response(
+        llm_response = await llm_service.generate_chat_response(
             query=request.query,
-            context=context_chunks,
-            conversation_history=request.conversation_history or []
+            context_chunks=context_chunks,
+            tenant_slug=request.tenant_slug
         )
         
         # 4. Preparar sources para la respuesta
         sources = []
         for chunk in context_chunks:
             if chunk["score"] >= 0.7:  # Solo incluir chunks relevantes
+                # Obtener o generar document_id
+                doc_id = chunk["metadata"].get("document_id")
+                if doc_id is None:
+                    doc_id = uuid4()
+                elif isinstance(doc_id, str):
+                    doc_id = UUID(doc_id)
+                
                 sources.append(ChatSource(
-                    content=chunk["content"][:200] + "..." if len(chunk["content"]) > 200 else chunk["content"],
+                    document_id=doc_id,
                     source=chunk["metadata"].get("source"),
                     title=chunk["metadata"].get("title"),
-                    tenant=chunk["metadata"].get("tenant"),
-                    scope=chunk["metadata"].get("scope"),
+                    tenant=chunk["metadata"].get("tenant", request.tenant_slug),
+                    scope=chunk["metadata"].get("scope", "CLIENT_SPECIFIC"),
                     relevance_score=chunk["score"]
                 ))
         

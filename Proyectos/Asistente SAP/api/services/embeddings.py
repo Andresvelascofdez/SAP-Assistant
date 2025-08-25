@@ -7,7 +7,7 @@ import tiktoken
 from typing import List, Dict, Any, Optional
 from openai import AsyncOpenAI
 from qdrant_client import AsyncQdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
+from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue, MatchAny
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
@@ -201,13 +201,23 @@ class QdrantService:
         """Buscar vectores similares con filtros"""
         
         # Construir filtros
-        filter_conditions = [
-            FieldCondition(
-                key="tenant",
-                match=MatchValue(value=tenant_filter[0]) if len(tenant_filter) == 1 
-                      else MatchValue(value=tenant_filter)
+        filter_conditions = []
+        
+        # Filtro de tenant - usar MatchAny para múltiples valores
+        if len(tenant_filter) == 1:
+            filter_conditions.append(
+                FieldCondition(
+                    key="tenant",
+                    match=MatchValue(value=tenant_filter[0])
+                )
             )
-        ]
+        else:
+            filter_conditions.append(
+                FieldCondition(
+                    key="tenant",
+                    match=MatchAny(any=tenant_filter)
+                )
+            )
         
         if filters:
             if filters.get("scope"):

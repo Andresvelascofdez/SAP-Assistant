@@ -4,6 +4,50 @@ Project changelog from April 2025 to current date.
 
 ---
 
+## [1.1.0] - 2025-08-26
+
+### 🚀 Major Update - ChatGPT Interface & Production Deployment
+
+#### ✅ Added
+
+- **Complete ChatGPT-style Interface** for enhanced user experience:
+  - Modern dark theme with ChatGPT-like design
+  - Real-time message exchange with typing indicators
+  - File upload support for document ingestion
+  - Responsive design for mobile and desktop
+- **Incident Management System** with structured workflow:
+  - "💾 Guardar Incidencia" button for saving new incidents
+  - Structured modal with SAP system categorization (IS-U, CRM, FI, SD)
+  - Topic-based classification (billing, move-in, readings, etc.)
+  - Free-text description with automatic metadata extraction
+  - Tag system for enhanced searchability
+- **Public API Endpoints** for single-user deployment:
+  - `/api/v1/search/chat-public` - Chat without authentication
+  - `/api/v1/ingest/text-public` - Save incidents without authentication
+  - `/api/v1/ingest/file-public` - Upload documents without authentication
+- **Production-Ready Configuration**:
+  - OpenAI GPT-4o-mini model integration (updated from GPT-4.1-preview)
+  - Complete Docker deployment with PostgreSQL and Qdrant
+  - Environment-based configuration management
+  - Automated startup and health checks
+
+#### 🔧 Fixed
+
+- **OpenAI Model Configuration**: Updated from non-existent `gpt-4.1-preview` to working `gpt-4o-mini`
+- **Frontend-Backend Integration**: Fixed JSON response field mapping (`answer` vs `response`)
+- **Import Structure**: Resolved Python module import issues across API package
+- **Qdrant Filtering**: Fixed tenant filtering logic using `MatchAny` for multiple tenant support
+- **Authentication Bypass**: Implemented public endpoints for single-user scenarios
+
+#### 📈 Improved
+
+- **Knowledge Persistence**: Guaranteed data retention across sessions with Docker volumes
+- **Search Performance**: Enhanced semantic search with improved confidence scoring
+- **User Experience**: Streamlined interface with immediate response feedback
+- **Documentation**: Updated with deployment instructions and API references
+
+---
+
 ## [1.0.0] - 2025-08-24
 
 ### 🎉 Initial Release - Complete System Implementation
