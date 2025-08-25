@@ -1,0 +1,170 @@
+version: '3.8'
+
+services:
+  # Reverse Proxy
+  traefik:
+    image: traefik:v3.0
+    container_name: sapisu_traefik
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL:-admin@example.com}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Dashboard
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./data/letsencrypt:/letsencrypt"
+    restart: unless-stopped
+    networks:
+      - sapisu_network
+
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: sapisu_postgres
+    environment:
+      POSTGRES_DB: sapisu
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - "./data/postgres:/var/lib/postgresql/data"
+      - "./deploy/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql"
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - sapisu_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sapisu"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Vector Database Qdrant
+  qdrant:
+    image: qdrant/qdrant:v1.7.0
+    container_name: sapisu_qdrant
+    volumes:
+      - "./data/qdrant:/qdrant/storage"
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    restart: unless-stopped
+    networks:
+      - sapisu_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Backend
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: sapisu_api
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@postgres:5432/sapisu
+      - QDRANT_URL=http://qdrant:6333
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    volumes:
+      - "./data/uploads:/app/uploads"
+      - "./backups:/app/backups"
+    restart: unless-stopped
+    networks:
+      - sapisu_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=le"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Scheduler para tareas programadas
+  scheduler:
+    build:
+      context: .
+      dockerfile: scheduler/Dockerfile
+    container_name: sapisu_scheduler
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@postgres:5432/sapisu
+      - QDRANT_URL=http://qdrant:6333
+    depends_on:
+      - api
+      - postgres
+      - qdrant
+    volumes:
+      - "./backups:/app/backups"
+    restart: unless-stopped
+    networks:
+      - sapisu_network
+
+  # Frontend Web (opcional)
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: sapisu_web
+    environment:
+      - NEXT_PUBLIC_API_URL=https://${DOMAIN:-localhost}/api
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - sapisu_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.web.entrypoints=websecure"
+      - "traefik.http.routers.web.tls.certresolver=le"
+      - "traefik.http.services.web.loadbalancer.server.port=3000"
+
+  # Redis para caché (opcional)
+  redis:
+    image: redis:7-alpine
+    container_name: sapisu_redis
+    volumes:
+      - "./data/redis:/data"
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - sapisu_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  sapisu_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  qdrant_data:
+  redis_data:

@@ -1,0 +1,451 @@
+Plan técnico detallado — “Wiki Inteligente SAP IS‑U” (RAG multi‑tenant)
+Autor: [tu nombre]
+Versión: 1.0
+Fecha: [actualízala]
+
+==================================================
+0) RESUMEN EJECUTIVO
+==================================================
+Construir una herramienta de productividad para consultor SAP IS‑U que actúa como “Wikipedia interactiva” privada:
+- Permite añadir incidencias y documentos en lenguaje natural (misma ventana) y consultarlos mediante chat.
+- Motor RAG (Retrieval‑Augmented Generation) con Qdrant (vectores) + Postgres (metadatos).
+- Segregación estricta por cliente (tenant) para evitar fugas de información: solo usa STANDARD + TENANT_ACTUAL.
+- Opción “Abstractor” para convertir casos con objetos Z en conocimiento general STANDARD (anonimizado).
+- UI de una sola ventana con dos modos: Añadir / Preguntar, y comandos (/add, /ask, /tenant, /std).
+- Desplegado en NAS/local vía Docker Compose (FastAPI, Qdrant, Postgres, Traefik).
+
+MVP en 2–3 semanas por 1 dev. Escalable a SaaS multi‑tenant si se desea.
+
+
+==================================================
+1) OBJETIVO Y ALCANCE (MVP)
+==================================================
+OBJETIVO
+- Reducir tiempo de resolución y documentación de incidencias SAP IS‑U.
+- Crear activo software propio defendible para IP Box (registros, métricas, versiones).
+
+INCLUIDO (MVP)
+- Ingesta en lenguaje natural y por archivos (PDF/MD/DOCX/HTML) desde una sola ventana.
+- Extracción automática de metadatos (cliente/tenant, scope, t‑codes, tablas, topic).
+- Almacenamiento: Postgres (registros), Qdrant (chunks vectoriales).
+- Consulta/Chat con citación de fuentes y filtros por tenant (STANDARD + TENANT_ACTUAL).
+- Seguridad básica: JWT, rate limit, RBAC simple (admin/usuario).
+- Backups programados (Postgres + Qdrant).
+- Métricas de calidad RAG (hit@k, nDCG@k) y canarios de fuga entre tenants.
+
+EXCLUIDO (futuro)
+- Dashboard multiusuario avanzado, pagos, auditoría avanzada, UI móvil nativa, re‑training de modelos.
+
+
+==================================================
+2) ARQUITECTURA DE ALTO NIVEL
+==================================================
+Componentes
+- Frontend (web ligera): caja única “Añadir / Preguntar”, historial, visor de fuentes.
+- API (FastAPI): /ingest, /search, /chat, /documents, /admin, /auth, /health.
+- Servicio de Ingesta: parsers (PDF/MD/HTML/DOCX), extractor de metadatos, validación, scrubber PII/Z, versionado, embeddings → Qdrant.
+- Motor de Búsqueda: Qdrant (vector), Postgres (filtros/BM25 opcional), re‑ranker opcional.
+- Programador de tareas: APScheduler (backups, re‑index, limpieza).
+- Persistencia: Postgres, Qdrant.
+- Reverse proxy: Traefik (TLS y rutas).
+
+Diagrama (texto)
+[Client] —HTTP→ [Traefik] —→ [FastAPI] —→ [Postgres]
+                                   └→ [Qdrant]
+                                   └→ [APScheduler jobs]
+                                   └→ [Embeddings (OpenAI)]
+
+
+==================================================
+3) TECNOLOGÍAS
+==================================================
+- Backend: Python 3.11+, FastAPI, Pydantic, Uvicorn/Gunicorn.
+- Persistencia: Postgres 16, SQLAlchemy + Alembic; Qdrant 1.x.
+- Programación de tareas: APScheduler.
+- Frontend: Next.js (o cliente desktop Python con PyInstaller).
+- Proxy: Traefik (o Nginx).
+- Embeddings: OpenAI text-embedding-3-small/large o local (bge/e5). Re‑ranker opcional (Cohere/bge-reranker).
+
+
+==================================================
+4) REQUISITOS FUNCIONALES
+==================================================
+F1. Añadir contenido en texto libre y por archivo desde una sola ventana.
+F2. Extraer metadatos: tenant, scope (STANDARD/CLIENT_SPECIFIC), sistema, topic, t‑codes, tablas, fecha, fuente.
+F3. Guardar incidencia/documento → Postgres (registro) + Qdrant (chunks + metadatos).
+F4. Preguntar por cliente (tenant) y recibir respuesta con pasos, causa y fuentes.
+F5. Nunca filtrar información de otros clientes: consulta = STANDARD + TENANT_ACTUAL.
+F6. Botón “Guardar esta respuesta como nota STANDARD”.
+F7. Búsqueda con citaciones (IDs/paths).
+
+REQUISITOS NO FUNCIONALES
+- Rendimiento: respuesta < 2–4 s en LAN con LLM externo; < 7 s con re‑ranker.
+- Seguridad: JWT, CORS, rate limit, logs de acceso y auditoría.
+- Resiliencia: backups diarios y restauración documentada.
+- Mantenibilidad: tests, linters, documentación, scripts de arranque.
+
+
+==================================================
+5) DISEÑO DE DATOS
+==================================================
+5.1 Postgres (DDL sugerida)
+-- tenants y usuarios (para futuro SaaS)
+CREATE TABLE tenants(
+  id UUID PRIMARY KEY,
+  slug TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  timezone TEXT DEFAULT 'Europe/Nicosia',
+  status TEXT DEFAULT 'active'
+);
+CREATE TABLE users(
+  id UUID PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  role TEXT CHECK(role IN('admin','user')) NOT NULL,
+  tenant_id UUID REFERENCES tenants(id)
+);
+
+-- documentos e incidencias
+CREATE TABLE documents(
+  id UUID PRIMARY KEY,
+  tenant_slug TEXT NOT NULL,           -- 'STANDARD' o 'CLIENT_X'
+  scope TEXT CHECK(scope IN('STANDARD','CLIENT_SPECIFIC')) NOT NULL,
+  type TEXT CHECK(type IN('incidencia','doc','nota','manual')) NOT NULL,
+  system TEXT,                         -- 'IS-U','CRM',…
+  topic TEXT,                          -- 'billing','move-in','dunning',…
+  tcodes TEXT[],                       -- ['EC85',...]
+  tables TEXT[],                       -- ['EABLG','BUT000',...]
+  title TEXT,
+  root_cause TEXT,
+  steps TEXT[],                        -- array de pasos
+  risks TEXT[],
+  tags TEXT[],
+  source TEXT,                         -- ruta, URL interna o 'nota-personal'
+  version INT DEFAULT 1,
+  hash TEXT,                           -- dedupe
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_docs_tenant_scope ON documents(tenant_slug, scope);
+CREATE INDEX idx_docs_topic ON documents(topic);
+CREATE INDEX idx_docs_tcodes ON documents USING GIN (tcodes);
+CREATE INDEX idx_docs_tables ON documents USING GIN (tables);
+
+-- chunks vectoriales (relación con Qdrant)
+CREATE TABLE chunks(
+  id UUID PRIMARY KEY,
+  document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+  chunk_index INT,
+  token_count INT,
+  qdrant_point_id TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- consultas y evaluación
+CREATE TABLE eval_queries(
+  id UUID PRIMARY KEY,
+  tenant_slug TEXT,
+  question TEXT,
+  expected_sources TEXT[]
+);
+CREATE TABLE eval_runs(
+  id UUID PRIMARY KEY,
+  at TIMESTAMPTZ DEFAULT now(),
+  metric_ndcg NUMERIC,
+  hit_at_5 NUMERIC,
+  details JSONB
+);
+
+5.2 Qdrant (colección única)
+- collection: sapisu_knowledge
+- vector size: según embeddings
+- distance: cosine
+- payload (metadatos por punto):
+  {
+    "tenant": "STANDARD" | "CLIENT_A" | "CLIENT_B",
+    "scope": "STANDARD" | "CLIENT_SPECIFIC",
+    "system": "IS-U",
+    "topic": "billing" | "...",
+    "tcodes": ["EC85"],
+    "tables": ["EABLG","..."],
+    "date": "YYYY-MM-DD",
+    "source": "path/id",
+    "doc_id": "UUID",
+    "chunk_index": 0
+  }
+- payload index: crear índices en tenant, scope, topic, tcodes, tables.
+
+5.3 Índice BM25 (opcional, corpus pequeño)
+- Usar Postgres con extensión pg_trgm/tsvector sobre documents.title/root_cause/steps.
+
+
+==================================================
+6) PIPELINE DE INGESTA
+==================================================
+6.1 Entrada (una sola ventana)
+- Modos: [Añadir]/[Preguntar] (toggle). Comandos: /add, /ask, /tenant CLIENT_B, /std.
+- Dropzone de archivos (PDF/DOCX/MD/HTML).
+
+6.2 Parsing
+- PDF: pdfminer.six / unstructured
+- DOCX: python-docx
+- MD/HTML: Markdown/BeautifulSoup
+
+6.3 Extracción de metadatos
+- Regex t‑codes: \b[A-Z]{2}\d{2}\b  (ajustar a lista blanca de transacciones IS‑U)
+- Regex tablas: \b[A-Z][A-Z0-9_]{3,}\b (filtrar por lista de tablas comunes)
+- Detectar objetos Z/Y: \b[ZY][A-Z0-9_]{2,}\b
+- Detección de tenant: selector UI o inferencia por prefijo/tags.
+
+6.4 Estructuración (LLM IE → JSON)
+- Prompt: “Convierte TEXTO en JSON con schema requerido; si faltan campos críticos, incluye needs_clarification y 1–2 preguntas”.
+- Validar JSON contra Pydantic.
+
+6.5 Validación y scrubbers
+- Si scope=STANDARD, bloquear apariciones de Z/Y o PII; si aparecen, pedir confirmación o forzar CLIENT_SPECIFIC.
+- Hash para deduplicar documentos casi iguales; versionado si cambia >10%.
+
+6.6 Chunking y embeddings
+- chunk_size: 800–1000 tokens; overlap: 100–150.
+- Calcular embeddings y upsert en Qdrant (payload completo por punto).
+- Registrar chunks en Postgres.
+
+6.7 Abstractor (opcional para MVP+)
+- Si doc CLIENT_SPECIFIC con Z tiene patrón útil → generar una “ficha STANDARD” anonimizada sin Z/PII y guardarla como nuevo documento STANDARD.
+
+6.8 Respuesta UX
+- Mostrar ✅ Guardado + doc_id + enlace “Ver/Editar” sin sacar al usuario del flujo.
+
+
+==================================================
+7) CONSULTA / CHAT (RAG)
+==================================================
+7.1 Filtros obligatorios (en servidor)
+- Para tenant T: filtrar Qdrant con tenant IN {T, 'STANDARD'} y scope acorde.
+- Nunca incluir otros tenants.
+
+7.2 Recuperación
+- top_k_inicial=30 en Qdrant con filtros.
+- (Opcional) BM25 candidatos por Postgres y fusionar (reciprocal rank fusion).
+- Re‑ranker opcional (bge‑reranker / Cohere) a top‑5.
+
+7.3 Prompt de respuesta (plantilla)
+- Instrucciones: responder con pasos concretos, t‑codes y tablas; citar fuentes; no revelar Z de otros clientes.
+- Incluir 3–5 few‑shots de estilo si hace falta.
+
+7.4 Guardarraíl de salida
+- Post-procesar texto; si aparece patrón Z/Y no perteneciente al tenant actual → redactar y añadir aviso.
+- Modo “baja confianza”: si poca relevancia, pedir 1–2 aclaraciones al usuario.
+
+7.5 Formato de salida
+- Título breve → Causa raíz probable → Pasos → Riesgos → Fuentes (lista de [source | tenant | scope]).
+
+
+==================================================
+8) API (FastAPI) — ENDPOINTS
+==================================================
+Auth
+- POST /auth/login  (email OTP o password) → JWT
+- GET  /auth/me
+
+Ingesta
+- POST /ingest  (JSON o multipart files)
+  req: { tenant, scope?, text?, files?, tags? }
+  resp: { doc_id, version, chunks, warnings }
+
+Búsqueda/Chat
+- POST /search  { tenant, query, filters? } → { hits: [{text, source, score, metadata}] }
+- POST /chat    { tenant, query } → { answer, sources: [...], trace? }
+
+Documentos
+- GET  /documents/{id}
+- PATCH /documents/{id} (editar metadatos)
+- GET  /documents?tenant=...&q=...
+
+Admin
+- GET  /health
+- POST /admin/reindex
+- GET  /metrics (nDCG, hit@k, conteos)
+
+Respuestas de ejemplo: incluir en la wiki del repo (OpenAPI/Swagger habilitado).
+
+
+==================================================
+9) UI (UNA SOLA VENTANA)
+==================================================
+- Barra superior: Selector Cliente (chip), Scope (STANDARD/CLIENT), Toggle [Añadir/Preguntar].
+- Textarea grande (acepta files drag&drop). Placeholders distintos por modo.
+- Chips/inputs sugeridos: topic, t‑codes, tablas (autocompletado tras parse).
+- Panel derecho: respuesta o confirmación de guardado; botón “Guardar esta respuesta (STANDARD)”. 
+- Historial local de últimas 20 interacciones.
+- Atajos: Ctrl+1 (Añadir), Ctrl+2 (Preguntar), Ctrl+Enter (Ejecutar).
+
+
+==================================================
+10) SEGURIDAD
+==================================================
+- JWT con caducidad corta; refresh tokens; roles admin/user.
+- Enforzar filtros por tenant en el backend, nunca confiar en el cliente.
+- Rate limiting (IP/usuario) en /chat y /ingest.
+- CORS restringido a tu dominio.
+- Secretos en variables de entorno; no commitear .env.
+- Logs de auditoría: quién ingresó/consultó qué (sin contenido sensible).
+
+
+==================================================
+11) DESPLIEGUE (Docker Compose)
+==================================================
+services:
+  proxy:
+    image: traefik:v3
+    command:
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+      - "--certificatesresolvers.le.acme.email=tu@correo"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+    ports: ["80:80","443:443"]
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock","./letsencrypt:/letsencrypt"]
+
+  api:
+    build: ./api
+    env_file: .env
+    depends_on: [postgres, qdrant]
+    labels:
+      - "traefik.http.routers.api.rule=Host(`tu-dominio`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=le"
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes: ["./data/qdrant:/qdrant/storage"]
+    ports: ["6333:6333"]
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=sapisu
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes: ["./data/pg:/var/lib/postgresql/data"]
+    ports: ["5432:5432"]
+
+  scheduler:
+    build: ./scheduler  # contenedor pequeño que lanza APScheduler/cron
+    env_file: .env
+    depends_on: [api, postgres, qdrant]
+
+Variables .env (ejemplo)
+- OPENAI_API_KEY=...
+- DATABASE_URL=postgresql+psycopg://postgres:***@postgres:5432/sapisu
+- QDRANT_URL=http://qdrant:6333
+- JWT_SECRET=***
+- TZ=Europe/Nicosia
+
+Volúmenes/backup
+- pg_dump diario (APScheduler) → ./backups/pg/YYYYMMDD.sql.gz
+- export Qdrant snapshots → ./backups/qdrant/…
+- Copia semanal a S3/B2 (opcional, cifrado).
+
+
+==================================================
+12) LOGGING, OBSERVABILIDAD, AUDITORÍA
+==================================================
+- Logging estructurado (JSON) con request_id/tenant en cada línea.
+- Traza de RAG: qué pasajes se usaron y sus IDs (para depurar y auditar).
+- Métricas: nº documentos, nº chunks, tokens consumidos, tiempo medio de respuesta.
+
+
+==================================================
+13) TESTING Y CALIDAD
+==================================================
+- Unit tests: parsers, regex, validadores Pydantic, filtros tenant.
+- Integración: /ingest → Qdrant/Postgres; /chat → respuesta con citas.
+- Evaluación RAG: conjunto de 30–40 preguntas (por tenant); medir hit@5 y nDCG@5.
+- Canarios anti‑fuga: documentos señuelo por tenant; si aparecen en otro, alarma y test falla.
+- Lint/Format: ruff/black, mypy opcional.
+
+
+==================================================
+14) ROADMAP POR FASES
+==================================================
+Fase 1 (MVP, 2–3 semanas)
+- Infra, ingesta básica, chat con citas, filtros de tenant, backups, métricas básicas.
+
+Fase 2 (+2 semanas)
+- Abstractor STANDARD, re‑ranker, BM25 híbrido, UI mejorada, export PDF de respuestas, evaluación automatizada.
+
+Fase 3 (producto)
+- Multiusuario/tenants, panel admin, auditoría avanzada, portal de cliente, hosting externo.
+
+
+==================================================
+15) ESTIMACIONES (1 dev con Copilot)
+==================================================
+- MVP: 64–102 h (1.5–2.5 semanas). 
+- Fase 2: +40–80 h.
+- Ajustes según UI y seguridad.
+
+
+==================================================
+16) GUÍA PARA DESARROLLADORES JUNIORS
+==================================================
+- Leer este plan completo antes de empezar.
+- Empezar por “esqueleto” del repo y endpoints /health, /auth/me.
+- Hacer PRs pequeños (máx. 300 líneas), con tests y descripción.
+- No exponer nunca datos de un tenant a otro (revisar filtros en backend).
+- Registrar todo cambio de esquema con Alembic.
+- Añadir logs y citas a cada respuesta del chat (trazabilidad).
+
+
+==================================================
+17) RIESGOS Y MITIGACIONES
+==================================================
+- Fuga entre clientes → Enforzar filtros en servidor + canarios + guardarraíl de salida.
+- Parsing PDF pobre → permitir adjuntar MD/Texto + mejorar parsers más adelante.
+- Latencia con LLM → cachear embeddings, usar modelos “mini”, top_k prudente.
+- Rotura de backups → probar restauración mensualmente (runbook).
+
+
+==================================================
+18) APÉNDICES
+==================================================
+A) Regex útiles
+- T‑code: \b[A-Z]{2}\d{2}\b (o lista blanca concreta de transacciones IS‑U)
+- Tabla SAP: \b[A-Z][A-Z0-9_]{3,}\b
+- Objetos Z/Y: \b[ZY][A-Z0-9_]{2,}\b
+- PII básica: emails, IBAN, NIF (implementar con patrones específicos)
+
+B) Prompt de ingesta (borrador)
+“Convierte el texto siguiente en JSON siguiendo este schema: {...}. 
+Extrae tenant/scope, t‑codes, tablas, causa raíz, pasos y riesgos. 
+Si faltan campos críticos, añade 'needs_clarification': true y 'questions': [...]. 
+No incluyas objetos Z/Y en STANDARD. Devuelve solo JSON válido.”
+
+C) Prompt de respuesta (borrador)
+“Instrucciones: Eres asistente SAP IS‑U. Usa SOLO el CONTEXTO permitido (STANDARD + TENANT_ACTUAL). 
+Da causa probable, pasos con t‑codes/tablas, riesgos y cita fuentes. 
+No menciones Z/Y de otros clientes. Si la confianza es baja, pide una aclaración.”
+
+D) Estructura de carpetas (repo)
+/api
+  /routers (auth, ingest, search, chat, admin)
+  /models (pydantic)
+  /db (sqlalchemy, alembic)
+  /services (embeddings, qdrant, abstractor, scrubbers)
+  /utils (regex, logging, auth)
+/scheduler (jobs APScheduler)
+/web (Next.js)  [opcional]
+/deploy (docker-compose.yml, traefik, scripts)
+/docs (prompts, decisiones, evaluación)
+/tests
+
+E) Criterios de aceptación (MVP)
+- Añadir texto/archivo → se crea documento con metadatos, chunks en Qdrant; vemos ✅ y doc_id.
+- Preguntar por CLIENT_B → Nunca aparecen fuentes de CLIENT_A; respuesta con 2–5 fuentes válidas.
+- Backup diario generado y verificable; restauración guía probada.
+- Métrica hit@5 ≥ 0.7 en set de 30 preguntas internas.
+
+F) Otros
+- Cuando se implemente una nueva funcionalidad debe mantenerse un fichero changelog donde la fecha inicial sera abril de 2025 y con cada cambio las fechas deben ir llegando al dia de hoy
+
+FIN
