@@ -206,6 +206,7 @@ class ChatRequest(BaseModel):
     query: str
     filters: Optional[SearchFilters] = None
     include_trace: bool = False
+    additional_context: Optional[str] = None  # Contexto adicional de archivos subidos
 
 
 class ChatSource(BaseModel):
@@ -305,3 +306,6 @@ class FileProcessResult(BaseModel):
     document_id: Optional[UUID] = None
     error: Optional[str] = None
     warnings: List[str] = Field(default_factory=list)
+    chunks_created: int = 0
+    message: Optional[str] = None
+    content: Optional[str] = None  # Contenido extraído para contexto de chat

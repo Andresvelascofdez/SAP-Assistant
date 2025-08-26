@@ -67,7 +67,6 @@
         }
 
         .message-content {
-            max-width: 70%;
             padding: 12px 16px;
             border-radius: 18px;
             word-wrap: break-word;
@@ -78,12 +77,46 @@
             background: #10a37f;
             color: white;
             border-bottom-right-radius: 4px;
+            max-width: 70%; /* Mantener tamaño moderado para mensajes del usuario */
         }
 
         .message.assistant .message-content {
             background: #444654;
             color: #ececec;
             border-bottom-left-radius: 4px;
+            max-width: 95%; /* Ancho casi completo para respuestas del asistente */
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+        }
+
+        .message.assistant .message-content code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .message.assistant .message-content strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .message.system-message {
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .message.system-message .message-content {
+            background: #2d3748;
+            color: #a0aec0;
+            border: 1px solid #4a5568;
+            font-style: italic;
+            font-size: 14px;
+            max-width: 90%;
+            text-align: center;
+            border-radius: 12px;
         }
 
         .input-container {
@@ -98,6 +131,103 @@
             max-width: 768px;
             margin: 0 auto;
             position: relative;
+        }
+
+        .action-buttons-container {
+            padding: 10px 20px 20px 20px;
+            background: #343541;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            max-width: 768px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 768px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .attached-files-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #40414f;
+            border-radius: 12px;
+            border: 1px solid #565869;
+        }
+
+        .attached-file-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #2a2b32;
+            border: 1px solid #4d4d4f;
+            border-radius: 16px;
+            padding: 4px 8px;
+            font-size: 12px;
+            color: #ececec;
+            max-width: 200px;
+        }
+
+        .attached-file-chip .file-icon {
+            font-size: 14px;
+        }
+
+        .attached-file-chip .file-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .attached-file-chip .file-status {
+            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .attached-file-chip .status-uploading {
+            background: #ffa726;
+            color: #000;
+        }
+
+        .attached-file-chip .status-success {
+            background: #4caf50;
+            color: #fff;
+        }
+
+        .attached-file-chip .status-error {
+            background: #f44336;
+            color: #fff;
+        }
+
+        .attached-file-chip .remove-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px;
+            border-radius: 2px;
+            transition: color 0.2s;
+        }
+
+        .attached-file-chip .remove-btn:hover {
+            color: #f44336;
         }
 
         .message-input {
@@ -149,19 +279,42 @@
             background: #1976d2;
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 12px 24px;
+            border-radius: 25px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
-            margin-left: 10px;
             transition: background 0.2s;
-            height: fit-content;
-            align-self: flex-end;
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .save-incidence-button:hover {
             background: #1565c0;
+        }
+
+        .edit-incidence-button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: background 0.2s;
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .edit-incidence-button:hover {
+            background: #f57c00;
         }
 
         .modal {
@@ -283,6 +436,27 @@
             background: #16a669;
         }
 
+        .search-button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .search-button:hover {
+            background: #1976d2;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
         .file-input-wrapper {
             position: relative;
             display: inline-block;
@@ -402,6 +576,33 @@
             .input-container {
                 padding: 15px;
             }
+
+            .action-buttons-container {
+                padding: 10px 15px 15px 15px;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .save-incidence-button,
+            .edit-incidence-button {
+                min-width: 200px;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .input-row {
+                flex-direction: column;
+                gap: 8px;
+                align-items: stretch;
+            }
+
+            .attached-files-inline {
+                padding: 6px 8px;
+            }
+
+            .attached-file-chip {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -419,28 +620,43 @@
             </div>
         </div>
 
+        <!-- Contenedor para el chat y botón enviar -->
         <div class="input-container">
             <div class="input-wrapper">
-                <div class="file-input-wrapper">
-                    <input type="file" id="fileInput" class="file-input" accept=".txt,.pdf,.doc,.docx" onchange="handleFileSelect(event)">
-                    <button class="file-button" onclick="document.getElementById('fileInput').click()">
-                        📎
+                <!-- Área de archivos adjuntos (estilo ChatGPT) -->
+                <div class="attached-files-inline" id="attachedFilesInline" style="display: none;">
+                    <!-- Los archivos aparecerán aquí como chips -->
+                </div>
+                
+                <div class="input-row">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" class="file-input" accept=".txt,.pdf,.doc,.docx" multiple onchange="handleFileSelect(event)">
+                        <button class="file-button" onclick="document.getElementById('fileInput').click()">
+                            📎
+                        </button>
+                    </div>
+                    <textarea 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="Escribe tu pregunta sobre SAP IS-U..."
+                        onkeypress="handleKeyPress(event)"
+                        rows="1"
+                    ></textarea>
+                    <button id="sendButton" class="send-button" onclick="sendMessage()">
+                        Enviar
                     </button>
                 </div>
-                <textarea 
-                    id="messageInput" 
-                    class="message-input" 
-                    placeholder="Escribe tu pregunta sobre SAP IS-U..."
-                    onkeypress="handleKeyPress(event)"
-                    rows="1"
-                ></textarea>
-                <button id="sendButton" class="send-button" onclick="sendMessage()">
-                    Enviar
-                </button>
-                <button id="saveIncidenceButton" class="save-incidence-button" onclick="showSaveIncidenceModal()">
-                    💾 Guardar Incidencia
-                </button>
             </div>
+        </div>
+
+        <!-- Contenedor para los botones de acción -->
+        <div class="action-buttons-container">
+            <button id="saveIncidenceButton" class="save-incidence-button" onclick="showSaveIncidenceModal()">
+                💾 Guardar Incidencia
+            </button>
+            <button id="editIncidenceButton" class="edit-incidence-button" onclick="showEditIncidenceModal()">
+                ✏️ Editar Incidencia
+            </button>
         </div>
     </div>
 
@@ -495,6 +711,22 @@
                         <input type="text" id="incidenceTags" class="form-input" 
                                placeholder="Ej: EC85, EABLG, facturación, error">
                     </div>
+
+                    <div class="form-group">
+                        <label>Documentos de Apoyo:</label>
+                        <div class="attached-files-inline" id="incidenceAttachedFiles" style="display: none;">
+                            <!-- Archivos adjuntos aparecerán aquí -->
+                        </div>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="incidenceFileInput" class="file-input" 
+                                   accept=".txt,.pdf,.doc,.docx,.png,.jpg,.jpeg,.gif" multiple 
+                                   onchange="handleIncidenceFileSelect(event)">
+                            <button type="button" class="file-button" onclick="document.getElementById('incidenceFileInput').click()">
+                                📎 Adjuntar Documentos/Imágenes
+                            </button>
+                        </div>
+                        <div class="form-hint">Adjunta documentos e imágenes relacionados con la incidencia para enriquecer la base de conocimiento.</div>
+                    </div>
                     
                     <div class="form-actions">
                         <button type="button" onclick="closeSaveIncidenceModal()" class="cancel-button">Cancelar</button>
@@ -505,22 +737,148 @@
         </div>
     </div>
 
+    <!-- Modal para editar incidencia -->
+    <div id="editIncidenceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Incidencia</h3>
+                <span class="close" onclick="closeEditIncidenceModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- Primer paso: Buscar incidencia -->
+                <div id="searchIncidenceStep">
+                    <div class="form-group">
+                        <label for="searchIncidenceCode">Código de la Incidencia:</label>
+                        <input type="text" id="searchIncidenceCode" class="form-input" 
+                               placeholder="Ej: INC-2025-001" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="closeEditIncidenceModal()" class="cancel-button">Cancelar</button>
+                        <button type="button" onclick="searchIncidence()" class="search-button">🔍 Buscar</button>
+                    </div>
+                </div>
+
+                <!-- Segundo paso: Editar incidencia -->
+                <div id="editIncidenceStep" style="display: none;">
+                    <form id="editIncidenceForm">
+                        <input type="hidden" id="editIncidenceId">
+                        
+                        <div class="form-group">
+                            <label for="editIncidenceTitle">Título de la Incidencia:</label>
+                            <input type="text" id="editIncidenceTitle" class="form-input" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editIncidencePriority">Prioridad:</label>
+                            <select id="editIncidencePriority" class="form-input" required>
+                                <option value="">Selecciona una prioridad</option>
+                                <option value="low">Baja</option>
+                                <option value="medium">Media</option>
+                                <option value="high">Alta</option>
+                                <option value="critical">Crítica</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editIncidenceCategory">Categoría:</label>
+                            <select id="editIncidenceCategory" class="form-input" required>
+                                <option value="">Selecciona una categoría</option>
+                                <option value="billing">Facturación</option>
+                                <option value="installation">Instalación</option>
+                                <option value="reading">Lecturas</option>
+                                <option value="dunning">Recobro</option>
+                                <option value="master-data">Datos Maestros</option>
+                                <option value="reporting">Reporting</option>
+                                <option value="other">Otro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editIncidenceContent">Descripción de la Incidencia:</label>
+                            <textarea id="editIncidenceContent" class="form-textarea" rows="10" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editIncidenceTags">Tags (separados por comas):</label>
+                            <input type="text" id="editIncidenceTags" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Documentos de Apoyo:</label>
+                            <div class="attached-files-inline" id="editIncidenceAttachedFiles" style="display: none;">
+                                <!-- Archivos adjuntos aparecerán aquí -->
+                            </div>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="editIncidenceFileInput" class="file-input" 
+                                       accept=".txt,.pdf,.doc,.docx,.png,.jpg,.jpeg,.gif" multiple 
+                                       onchange="handleEditIncidenceFileSelect(event)">
+                                <button type="button" class="file-button" onclick="document.getElementById('editIncidenceFileInput').click()">
+                                    📎 Adjuntar Documentos/Imágenes
+                                </button>
+                            </div>
+                            <div class="form-hint">Adjunta documentos e imágenes adicionales para enriquecer la base de conocimiento.</div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" onclick="backToSearch()" class="cancel-button">← Volver</button>
+                            <button type="submit" class="save-button">💾 Actualizar Incidencia</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const messagesContainer = document.getElementById('messagesContainer');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
 
-        function addMessageToChat(content, isUser = false, isError = false) {
+        function addMessageToChat(content, isUser = false, isError = false, messageType = 'normal') {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+            
+            if (messageType === 'system') {
+                messageDiv.className = 'message system-message';
+            } else {
+                messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+            }
             
             const contentDiv = document.createElement('div');
             contentDiv.className = isError ? 'error-message' : 'message-content';
-            contentDiv.innerHTML = content;
+            
+            // Formatear el contenido para mejor legibilidad
+            if (!isUser && !isError && messageType !== 'system') {
+                // Para respuestas del asistente, formatear texto
+                const formattedContent = formatAssistantResponse(content);
+                contentDiv.innerHTML = formattedContent;
+            } else {
+                contentDiv.innerHTML = content;
+            }
             
             messageDiv.appendChild(contentDiv);
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function formatAssistantResponse(content) {
+            // Convertir saltos de línea en <br>
+            let formatted = content.replace(/\n/g, '<br>');
+            
+            // Formatear listas numeradas y con viñetas
+            formatted = formatted.replace(/^(\d+\.\s+)/gm, '<strong>$1</strong>');
+            formatted = formatted.replace(/^(-\s+)/gm, '<strong>$1</strong>');
+            
+            // Formatear texto en negrita para títulos (doble asterisco)
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Formatear código SAP (transacciones, t-codes)
+            formatted = formatted.replace(/\b([A-Z]{2,4}\d{2,3})\b/g, '<code>$1</code>');
+            formatted = formatted.replace(/\b(SE\d{2}|SM\d{2}|VA\d{2}|VF\d{2}|FB\d{2})\b/g, '<code>$1</code>');
+            
+            // Formatear código entre comillas simples
+            formatted = formatted.replace(/'([^']+)'/g, '<code>$1</code>');
+            
+            return formatted;
         }
 
         function showTypingIndicator() {
@@ -553,7 +911,31 @@
             const message = messageInput.value.trim();
             if (!message) return;
 
-            // Add user message
+            // Preparar contexto adicional de archivos adjuntos
+            let additionalContext = null;
+            
+            if (chatAttachedFiles.length > 0) {
+                const fileContexts = chatAttachedFiles
+                    .filter(f => f.success && f.content)
+                    .map(f => `=== ARCHIVO: ${f.name} ===\n${f.content}`)
+                    .join('\n\n');
+                
+                if (fileContexts) {
+                    additionalContext = fileContexts;
+                    
+                    // Estimar si se necesitará resumen (solo para archivos enormes)
+                    const estimatedTokens = Math.ceil(fileContexts.length / 4);
+                    if (estimatedTokens > 100000) {
+                        // Mostrar indicador solo para archivos realmente enormes
+                        addMessageToChat("🔄 Archivo extremadamente grande detectado, generando resumen inteligente...", false, false, "system");
+                    } else if (estimatedTokens > 50000) {
+                        // Info para archivos grandes pero manejables
+                        addMessageToChat("� Procesando archivo grande (~" + Math.round(estimatedTokens/1000) + "K tokens)...", false, false, "system");
+                    }
+                }
+            }
+
+            // Add user message (solo el mensaje original, no el contexto completo)
             addMessageToChat(message, true);
             messageInput.value = '';
             sendButton.disabled = true;
@@ -562,15 +944,23 @@
             showTypingIndicator();
 
             try {
+                // Preparar el payload con campos separados
+                const payload = {
+                    query: message, // Solo la consulta del usuario
+                    tenant_slug: 'default'
+                };
+                
+                // Agregar contexto adicional si hay archivos
+                if (additionalContext) {
+                    payload.additional_context = additionalContext;
+                }
+
                 const response = await fetch('/api/v1/search/chat-public', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        query: message,
-                        tenant_slug: 'default'
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 hideTypingIndicator();
@@ -581,6 +971,9 @@
 
                 const data = await response.json();
                 addMessageToChat(data.answer || 'No se recibió respuesta del servidor.');
+                
+                // Limpiar archivos adjuntos después de enviar
+                clearAttachedFiles();
 
             } catch (error) {
                 hideTypingIndicator();
@@ -603,44 +996,159 @@
             }
         }
 
+        // === VARIABLES GLOBALES PARA CONTEXTO DE CHAT ===
+        let chatAttachedFiles = []; // Almacena contenido de archivos para contexto
+
         async function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+
+            // Procesar cada archivo individualmente
+            for (const file of files) {
+                await processFile(file);
+            }
+
+            // Reset file input
+            event.target.value = '';
+        }
+
+        async function processFile(file) {
+            // Crear elemento de archivo adjunto con timestamp único
+            const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            addAttachedFile(fileId, file.name, 'uploading');
 
             const formData = new FormData();
             formData.append('file', file);
             formData.append('tenant_slug', 'default');
+            formData.append('context', 'chat'); // Marcar que es para contexto de chat
 
             try {
-                addMessageToChat(`📎 Subiendo archivo: ${file.name}`, true);
-                showTypingIndicator();
-
-                const response = await fetch('/api/v1/ingest/file-public', {
+                const response = await fetch('/api/v1/ingest/file-context', {
                     method: 'POST',
                     body: formData
                 });
-
-                hideTypingIndicator();
 
                 if (!response.ok) {
                     throw new Error(`Error HTTP: ${response.status}`);
                 }
 
                 const data = await response.json();
-                addMessageToChat(`✅ Archivo procesado correctamente: ${file.name}`);
+                
+                // Verificar si el contenido es extremadamente largo (GPT-4o-mini tiene 128K tokens)
+                const contentLength = data.content ? data.content.length : 0;
+                const estimatedTokens = Math.ceil(contentLength / 4);
+                const maxModelTokens = 128000; // Límite real de GPT-4o-mini
+                const maxRecommendedTokens = 100000; // Límite práctico conservando espacio para respuesta
+                
+                if (estimatedTokens > maxRecommendedTokens) {
+                    console.warn(`Archivo muy grande detectado: ~${estimatedTokens} tokens (límite modelo: ${maxModelTokens})`);
+                    // Solo mostrar info para archivos realmente enormes
+                    alert(`📄 Archivo muy grande detectado:\n\nTamaño: ~${estimatedTokens} tokens\nLímite del modelo: ${maxModelTokens} tokens\n\n✅ Se generará un resumen inteligente solo si es necesario.\n💡 GPT-4o-mini puede manejar archivos muy grandes (~400K caracteres).`);
+                } else if (estimatedTokens > 50000) {
+                    // Info para archivos grandes pero manejables
+                    console.info(`Archivo grande (${estimatedTokens} tokens) - Será procesado completamente.`);
+                }
+                
+                // Almacenar contenido del archivo para el contexto
+                chatAttachedFiles.push({
+                    id: fileId,
+                    name: file.name,
+                    content: data.content || `[Archivo: ${file.name}]`,
+                    success: data.success,
+                    estimatedTokens: estimatedTokens
+                });
+                
+                // Actualizar estado del archivo a éxito
+                updateAttachedFileStatus(fileId, 'success');
 
             } catch (error) {
-                hideTypingIndicator();
                 console.error('Error:', error);
-                addMessageToChat(
-                    `❌ Error al procesar el archivo: ${error.message}`,
-                    false,
-                    true
-                );
+                
+                // Actualizar estado del archivo a error
+                updateAttachedFileStatus(fileId, 'error');
             }
+        }
 
-            // Reset file input
-            event.target.value = '';
+        function addAttachedFile(fileId, fileName, status) {
+            const container = document.getElementById('attachedFilesInline');
+            
+            // Mostrar el contenedor si está oculto
+            container.style.display = 'flex';
+            
+            // Crear chip de archivo
+            const fileChip = document.createElement('div');
+            fileChip.className = 'attached-file-chip';
+            fileChip.id = fileId;
+            
+            const icon = getFileIcon(fileName);
+            const statusText = getStatusText(status);
+            const statusClass = `status-${status}`;
+            
+            fileChip.innerHTML = `
+                <span class="file-icon">${icon}</span>
+                <span class="file-name" title="${fileName}">${fileName}</span>
+                <span class="file-status ${statusClass}">${statusText}</span>
+                <button class="remove-btn" onclick="removeAttachedFile('${fileId}')" title="Eliminar">✕</button>
+            `;
+            
+            container.appendChild(fileChip);
+        }
+
+        function updateAttachedFileStatus(fileId, status) {
+            const fileChip = document.getElementById(fileId);
+            if (!fileChip) return;
+            
+            const statusElement = fileChip.querySelector('.file-status');
+            const statusText = getStatusText(status);
+            const statusClass = `status-${status}`;
+            
+            statusElement.textContent = statusText;
+            statusElement.className = `file-status ${statusClass}`;
+        }
+
+        function removeAttachedFile(fileId) {
+            const fileChip = document.getElementById(fileId);
+            if (fileChip) {
+                fileChip.remove();
+                
+                // Remover también del contexto de chat
+                chatAttachedFiles = chatAttachedFiles.filter(f => f.id !== fileId);
+                
+                // Ocultar contenedor si no hay más archivos
+                const container = document.getElementById('attachedFilesInline');
+                if (container.children.length === 0) {
+                    container.style.display = 'none';
+                }
+            }
+        }
+
+        function clearAttachedFiles() {
+            const container = document.getElementById('attachedFilesInline');
+            container.innerHTML = '';
+            container.style.display = 'none';
+            chatAttachedFiles = []; // Limpiar también el contexto
+        }
+
+        function getFileIcon(fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            switch (ext) {
+                case 'pdf': return '📄';
+                case 'doc':
+                case 'docx': return '📝';
+                case 'txt': return '📋';
+                case 'xls':
+                case 'xlsx': return '📊';
+                default: return '📎';
+            }
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'uploading': return 'Subiendo...';
+                case 'success': return 'Procesado';
+                case 'error': return 'Error';
+                default: return status;
+            }
         }
 
         // Auto-resize textarea
@@ -657,12 +1165,13 @@
         // Modal functions for saving incidences
         function showSaveIncidenceModal() {
             document.getElementById('saveIncidenceModal').style.display = 'block';
+            clearIncidenceAttachedFiles('incidenceAttachedFiles'); // Limpiar archivos previos
         }
 
         function closeSaveIncidenceModal() {
             document.getElementById('saveIncidenceModal').style.display = 'none';
-            // Reset form
             document.getElementById('incidenceForm').reset();
+            clearIncidenceAttachedFiles('incidenceAttachedFiles');
         }
 
         // Close modal when clicking outside
@@ -741,6 +1250,260 @@ FECHA: ${new Date().toLocaleString('es-ES')}`;
                 alert(`Error al guardar la incidencia: ${error.message}`);
             }
         });
+
+        // Funciones para editar incidencias
+        function showEditIncidenceModal() {
+            document.getElementById('editIncidenceModal').style.display = 'block';
+            document.getElementById('searchIncidenceStep').style.display = 'block';
+            document.getElementById('editIncidenceStep').style.display = 'none';
+            document.getElementById('searchIncidenceCode').value = '';
+        }
+
+        function closeEditIncidenceModal() {
+            document.getElementById('editIncidenceModal').style.display = 'none';
+            document.getElementById('editIncidenceForm').reset();
+        }
+
+        function backToSearch() {
+            document.getElementById('searchIncidenceStep').style.display = 'block';
+            document.getElementById('editIncidenceStep').style.display = 'none';
+        }
+
+        async function searchIncidence() {
+            const incidenceCode = document.getElementById('searchIncidenceCode').value.trim();
+            
+            if (!incidenceCode) {
+                alert('Por favor, ingresa un código de incidencia');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/v1/incidences/search?code=${encodeURIComponent(incidenceCode)}`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        alert('No se encontró ninguna incidencia con ese código');
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const incidence = await response.json();
+                
+                // Cargar datos en el formulario
+                document.getElementById('editIncidenceId').value = incidence.id;
+                document.getElementById('editIncidenceTitle').value = incidence.title;
+                document.getElementById('editIncidencePriority').value = incidence.priority;
+                document.getElementById('editIncidenceCategory').value = incidence.category;
+                document.getElementById('editIncidenceContent').value = incidence.content;
+                document.getElementById('editIncidenceTags').value = incidence.tags;
+                
+                // Mostrar formulario de edición
+                document.getElementById('searchIncidenceStep').style.display = 'none';
+                document.getElementById('editIncidenceStep').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert(`Error al buscar la incidencia: ${error.message}`);
+            }
+        }
+
+        // Manejar formulario de edición
+        document.getElementById('editIncidenceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const incidenceId = document.getElementById('editIncidenceId').value;
+            const title = document.getElementById('editIncidenceTitle').value;
+            const priority = document.getElementById('editIncidencePriority').value;
+            const category = document.getElementById('editIncidenceCategory').value;
+            const content = document.getElementById('editIncidenceContent').value;
+            const tags = document.getElementById('editIncidenceTags').value;
+
+            try {
+                const response = await fetch(`/api/v1/incidences/${incidenceId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title,
+                        priority,
+                        category,
+                        content,
+                        tags
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                // Mostrar mensaje de éxito en el chat
+                addMessageToChat(`✅ Incidencia actualizada exitosamente: "${title}"`);
+                addMessageToChat(`📝 ID: ${result.id} | Código: ${result.code}`);
+                addMessageToChat(`🎯 Prioridad: ${priority} | Categoría: ${category}`);
+                
+                // Cerrar modal
+                closeEditIncidenceModal();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert(`Error al actualizar la incidencia: ${error.message}`);
+            }
+        });
+
+        // === FUNCIONES PARA MANEJO DE ARCHIVOS EN INCIDENCIAS ===
+        
+        // Variables globales para almacenar archivos de incidencias
+        let incidenceAttachedFiles = [];
+        let editIncidenceAttachedFiles = [];
+
+        // Funciones para guardar incidencia
+        async function handleIncidenceFileSelect(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+
+            for (const file of files) {
+                await processIncidenceFile(file, 'incidence');
+            }
+
+            event.target.value = '';
+        }
+
+        async function processIncidenceFile(file, context) {
+            const fileId = 'incidence_file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const containerId = context === 'incidence' ? 'incidenceAttachedFiles' : 'editIncidenceAttachedFiles';
+            
+            addIncidenceAttachedFile(fileId, file.name, 'uploading', containerId);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('tenant_slug', 'default');
+            formData.append('context', 'incidence'); // Marcar que es para alimentar RAG
+
+            try {
+                const response = await fetch('/api/v1/ingest/file-public', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Actualizar estado del archivo a éxito
+                updateIncidenceAttachedFileStatus(fileId, 'success', containerId);
+                
+                // Almacenar información del archivo
+                const fileInfo = {
+                    id: fileId,
+                    name: file.name,
+                    documentId: data.id,
+                    status: 'success'
+                };
+                
+                if (context === 'incidence') {
+                    incidenceAttachedFiles.push(fileInfo);
+                } else {
+                    editIncidenceAttachedFiles.push(fileInfo);
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                updateIncidenceAttachedFileStatus(fileId, 'error', containerId);
+            }
+        }
+
+        // Funciones para editar incidencia
+        async function handleEditIncidenceFileSelect(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+
+            for (const file of files) {
+                await processIncidenceFile(file, 'edit');
+            }
+
+            event.target.value = '';
+        }
+
+        // Funciones auxiliares para manejo de UI de archivos de incidencias
+        function addIncidenceAttachedFile(fileId, fileName, status, containerId) {
+            const container = document.getElementById(containerId);
+            
+            container.style.display = 'flex';
+            
+            const fileChip = document.createElement('div');
+            fileChip.className = 'attached-file-chip';
+            fileChip.id = fileId;
+            
+            const icon = getFileIcon(fileName);
+            const statusText = getStatusText(status);
+            const statusClass = `status-${status}`;
+            
+            fileChip.innerHTML = `
+                <span class="file-icon">${icon}</span>
+                <span class="file-name" title="${fileName}">${fileName}</span>
+                <span class="file-status ${statusClass}">${statusText}</span>
+                <button class="remove-btn" onclick="removeIncidenceAttachedFile('${fileId}', '${containerId}')" title="Eliminar">✕</button>
+            `;
+            
+            container.appendChild(fileChip);
+        }
+
+        function updateIncidenceAttachedFileStatus(fileId, status, containerId) {
+            const fileChip = document.getElementById(fileId);
+            if (!fileChip) return;
+            
+            const statusElement = fileChip.querySelector('.file-status');
+            const statusText = getStatusText(status);
+            const statusClass = `status-${status}`;
+            
+            statusElement.textContent = statusText;
+            statusElement.className = `file-status ${statusClass}`;
+        }
+
+        function removeIncidenceAttachedFile(fileId, containerId) {
+            const fileChip = document.getElementById(fileId);
+            if (fileChip) {
+                fileChip.remove();
+                
+                // Remover de la lista correspondiente
+                if (containerId === 'incidenceAttachedFiles') {
+                    incidenceAttachedFiles = incidenceAttachedFiles.filter(f => f.id !== fileId);
+                } else {
+                    editIncidenceAttachedFiles = editIncidenceAttachedFiles.filter(f => f.id !== fileId);
+                }
+                
+                // Ocultar contenedor si no hay más archivos
+                const container = document.getElementById(containerId);
+                if (container.children.length === 0) {
+                    container.style.display = 'none';
+                }
+            }
+        }
+
+        function clearIncidenceAttachedFiles(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            container.style.display = 'none';
+            
+            if (containerId === 'incidenceAttachedFiles') {
+                incidenceAttachedFiles = [];
+            } else {
+                editIncidenceAttachedFiles = [];
+            }
+        }
+
+        // Limpiar archivos al cerrar modales
+        function closeEditIncidenceModal() {
+            document.getElementById('editIncidenceModal').style.display = 'none';
+            document.getElementById('editIncidenceForm').reset();
+            clearIncidenceAttachedFiles('editIncidenceAttachedFiles');
+        }
     </script>
 </body>
 </html>

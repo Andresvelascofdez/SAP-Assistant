@@ -4,6 +4,172 @@ Project changelog from April 2025 to current date.
 
 ---
 
+## [1.3.0] - 2025-08-26
+
+### 🚀 Major Update - Enhanced Context Processing & Large File Support
+
+#### ✅ Added
+
+- **🔧 Advanced Context Logging System**:
+  - Complete visibility into file processing pipeline
+  - Detailed logs showing what context is passed to the chat
+  - Separate tracking for RAG chunks vs. file attachments
+  - Token estimation and content preview in logs
+  - Debug information for troubleshooting context issues
+
+- **📊 Large File Support (128K Tokens)**:
+  - Support for files up to ~400KB (100,000+ tokens)
+  - Automatic processing of large SAP documents without truncation
+  - Smart resizing only for extremely large files (>400KB)
+  - Intelligent content preservation for technical documents
+  - Cost-effective processing with GPT-4o-mini
+
+- **🎨 Enhanced UI/UX**:
+  - Assistant responses now use 95% width for better readability
+  - Improved text formatting with automatic line breaks
+  - SAP transaction codes automatically highlighted as code
+  - Bold formatting for titles and important sections
+  - Better typography and spacing for technical content
+
+- **⚡ Optimized Context Processing**:
+  - Separated query from file context in API calls
+  - `additional_context` field for clean file content passing
+  - Improved prompt engineering for better LLM responses
+  - Smart token management to avoid API limits
+
+#### 🔧 Technical Improvements
+
+- **Backend Enhancements**:
+  - New `additional_context` field in `ChatRequest` schema
+  - Enhanced logging in `llm.py` and `search.py` routers
+  - Automatic content formatting and token estimation
+  - Improved error handling for large content processing
+
+- **Frontend Improvements**:
+  - Enhanced `sendMessage()` function with proper context separation
+  - Improved file size warnings with model-specific limits
+  - Better visual indicators for large file processing
+  - Advanced text formatting for assistant responses
+
+#### 📈 Performance
+
+- **Token Optimization**: Increased practical limit from 3K to 100K+ tokens
+- **Cost Efficiency**: ~$0.15 per 1M tokens with GPT-4o-mini
+- **Processing Speed**: Faster handling of large files without summarization
+- **User Experience**: Immediate feedback on file processing status
+
+---
+
+## [1.2.0] - 2025-08-26
+
+### 🎯 Revolutionary Update - Dual-Flow Architecture & OCR Integration
+
+#### ✅ Added
+
+- **🔄 Dual Document Processing Architecture**:
+  - **RAG Flow**: Permanent knowledge base storage for incident management
+  - **Context Flow**: Temporary file context for single chat queries
+  - Intelligent routing between permanent and temporary processing
+  - Automatic cleanup of temporary contexts after use
+
+- **🖼️ Complete OCR Integration**:
+  - **Image Processing**: Support for PNG, JPG, JPEG, GIF, BMP, TIFF formats
+  - **pytesseract Integration**: Automatic text extraction from images
+  - **Bilingual Support**: Spanish + English text recognition
+  - **SAP Screenshot Optimization**: Enhanced processing for SAP interface captures
+  - **Error Handling**: Graceful fallback for OCR processing failures
+
+- **📎 ChatGPT-Style File Attachments**:
+  - Modern file chip interface with status indicators
+  - Multi-file selection and processing
+  - Real-time upload progress and success feedback
+  - Automatic file cleanup after message sending
+  - Visual file type icons and status badges
+
+- **🗂️ Enhanced Incident Management**:
+  - Separate file upload modal for permanent RAG storage
+  - Edit incident functionality with file attachment support
+  - Structured metadata extraction for SAP systems
+  - Document reference tracking and management
+
+- **⚡ Advanced Context Management**:
+  - Smart memory optimization for large file contexts
+  - Token-aware context window management
+  - Automatic memory cleanup and garbage collection
+  - Session-based context isolation
+
+#### 🔧 API Enhancements
+
+- **New Endpoints**:
+  - `/api/v1/ingest/file-context` - Temporary file processing for chat
+  - Enhanced `/api/v1/ingest/file-public` with context parameter
+  - Extended `/api/v1/search/chat-public` for multi-source responses
+
+- **Enhanced File Processing**:
+  - `FileParser.parse_upload_file()` - Async UploadFile handling
+  - `FileParser.parse_image()` - OCR image processing
+  - Temporary file management with automatic cleanup
+  - Enhanced error handling and logging
+
+#### 🏗️ Infrastructure Updates
+
+- **OCR Dependencies**:
+  - Added pytesseract>=0.3.10 to requirements.txt
+  - Added Pillow>=10.0.0 for image processing
+  - Updated Dockerfile with Tesseract OCR installation
+  - Enhanced PowerShell scripts with OCR dependency setup
+
+- **Database Extensions**:
+  - Added processing_context column to documents table
+  - Added ocr_processed flag for tracking image processing
+  - Enhanced metadata schema for dual-flow support
+  - File context table for temporary storage management
+
+- **Performance Optimizations**:
+  - Asynchronous OCR processing with thread pools
+  - Memory-efficient context management
+  - Smart chunking with context preservation
+  - Optimized vector search with context filtering
+
+#### 📱 Frontend Innovations
+
+- **Enhanced UI Components**:
+  - Dual file upload systems (chat vs incident)
+  - Modern file chip design with type indicators
+  - Progress feedback and error handling
+  - Mobile-responsive file management
+
+- **Context Integration**:
+  - Real-time file content assembly
+  - Smart context window optimization
+  - Automatic file cleanup after queries
+  - Visual context indicators in chat
+
+#### 🔒 Security & Quality
+
+- **Enhanced Security**:
+  - File size validation (10MB limit)
+  - Extension whitelist validation
+  - Secure temporary file handling
+  - Context isolation and automatic cleanup
+
+- **Quality Assurance**:
+  - Comprehensive OCR error handling
+  - Memory leak prevention
+  - Resource usage monitoring
+  - Enhanced logging and debugging
+
+#### 📚 Documentation Overhaul
+
+- **Complete Technical Documentation Rewrite**:
+  - Comprehensive dual-flow architecture explanation
+  - Detailed OCR integration documentation
+  - Step-by-step usage instructions
+  - Performance and security considerations
+  - Production deployment guidelines
+
+---
+
 ## [1.1.0] - 2025-08-26
 
 ### 🚀 Major Update - ChatGPT Interface & Production Deployment

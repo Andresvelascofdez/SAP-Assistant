@@ -73,11 +73,41 @@ async def chat_public(
                 "score": result["score"]
             })
         
+        # LOG DE DEPURACIÓN: Mostrar contexto que se está pasando
+        logger.info(
+            "=== CONTEXTO PASADO AL CHAT ===",
+            query=request.query,
+            tenant=request.tenant_slug,
+            total_chunks=len(context_chunks),
+            search_results_found=len(search_results),
+            has_additional_context=request.additional_context is not None,
+            additional_context_length=len(request.additional_context) if request.additional_context else 0
+        )
+        
+        # Log contexto adicional si existe
+        if request.additional_context:
+            logger.info(
+                "=== CONTEXTO ADICIONAL (ARCHIVO SUBIDO) ===",
+                content_length=len(request.additional_context),
+                content_preview=request.additional_context[:300] + "..." if len(request.additional_context) > 300 else request.additional_context
+            )
+        
+        for i, chunk in enumerate(context_chunks):
+            logger.info(
+                f"CHUNK {i+1}/{len(context_chunks)} (RAG)",
+                score=round(chunk["score"], 3),
+                source=chunk["metadata"].get("source", "N/A"),
+                title=chunk["metadata"].get("title", "N/A")[:100],
+                content_preview=chunk["content"][:200] + "..." if len(chunk["content"]) > 200 else chunk["content"],
+                content_length=len(chunk["content"])
+            )
+        
         # 3. Generar respuesta con LLM
         llm_response = await llm_service.generate_chat_response(
             query=request.query,
             context_chunks=context_chunks,
-            tenant_slug=request.tenant_slug
+            tenant_slug=request.tenant_slug,
+            additional_context=request.additional_context
         )
         
         # 4. Preparar sources para la respuesta

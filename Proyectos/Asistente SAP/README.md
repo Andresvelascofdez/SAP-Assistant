@@ -1,4 +1,14 @@
-# 🔍 SAP IS-U Smart Wiki
+# 🔍 SAP- **🤖 ChatGPT-Style Interface**: Modern conversational UI with real-time responses
+- **📎 Smart File Context**: Upload files directly to chat with automatic content processing
+- **📝 Incident Management**: Save and retrieve SAP IS-U incidents as structured knowledge
+- **🔍 Multi-tenant RAG**: Complete client isolation with STANDARD and CLIENT_SPECIFIC scopes
+- **🧠 Intelligent Search**: Vector embeddings with Qdrant and OpenAI GPT-4o-mini
+- **💬 Conversational Chat**: SAP IS-U specialized assistant with contextual memory
+- **📚 Document Management**: Automatic processing of PDF, DOCX, HTML, MD files
+- **🖼️ Image OCR Support**: Extract text from images (PNG, JPG, JPEG, GIF, BMP, TIFF)
+- **📎 Dual File Flow**: Different processing for RAG vs. contextual chat files
+- **🔧 Advanced Context Logging**: Complete visibility into what context is being processed
+- **🔐 Flexible Authentication**: JWT system or public mode for single-user deploymentrt Wiki
 
 A complete multi-tenant RAG (Retrieval-Augmented Generation) solution for SAP IS-U consultants that provides intelligent search, document management, and specialized conversational assistant with **ChatGPT-style interface**.
 
@@ -12,7 +22,9 @@ A complete multi-tenant RAG (Retrieval-Augmented Generation) solution for SAP IS
 - **🧠 Intelligent Search**: Vector embeddings with Qdrant and OpenAI GPT-4o-mini
 - **💬 Conversational Chat**: SAP IS-U specialized assistant with contextual memory
 - **📚 Document Management**: Automatic processing of PDF, DOCX, HTML, MD files
-- **🔐 Flexible Authentication**: JWT system or public mode for single-user deployment
+- **�️ Image OCR Support**: Extract text from images (PNG, JPG, JPEG, GIF, BMP, TIFF)
+- **📎 Dual File Flow**: Different processing for RAG vs. contextual chat files
+- **�🔐 Flexible Authentication**: JWT system or public mode for single-user deployment
 - **🚀 Complete REST API**: FastAPI with automatic documentation
 - ✅ Automatic SAP metadata extraction (t-codes, tables, topics)
 - ✅ Persistent knowledge base across sessions
@@ -28,24 +40,105 @@ A complete multi-tenant RAG (Retrieval-Augmented Generation) solution for SAP IS
 
 ## 🤖 AI Configuration
 
-This system leverages **GPT-4o-mini** for cost-effective conversational capabilities and **text-embedding-3-small** for semantic search. Key AI features:
+This system leverages **GPT-4o-mini** for cost-effective conversational capabilities with **128,000 token context** and **text-embedding-3-small** for semantic search. Key AI features:
 
 - **💡 Smart Reasoning**: GPT-4o-mini provides excellent understanding of SAP IS-U technical concepts
 - **📖 Source Attribution**: All responses include precise citations to source documents
-- **🧠 Context Awareness**: Maintains conversation history and domain-specific knowledge
+- **🧠 Large Context**: Handle files up to ~400KB (100,000+ tokens) without truncation
 - **🌍 Multi-language Support**: Works with Spanish, English, and technical SAP terminology
 - **💾 Persistent Memory**: Incidents and knowledge accumulate over time
+- **🔍 Context Visibility**: Complete logging of what information is processed
 
 ### OpenAI Models Used
-- **LLM**: `gpt-4o-mini` - For chat responses and content structuring
+
+- **LLM**: `gpt-4o-mini` (128K tokens) - For chat responses and content structuring
 - **Embeddings**: `text-embedding-3-small` - For semantic search and similarity matching
+- **Cost**: ~$0.15 per 1M tokens (very cost-effective for large documents)
 - **API Key**: See [OpenAI Configuration Guide](docs/OPENAI_CONFIG.md) for setup instructions
+
+## 📁 Document Processing & Image OCR
+
+### 🔄 Dual File Processing Flow
+
+The system implements a **dual-flow architecture** for document processing:
+
+#### 📝 **Incident Files (RAG Flow)**
+
+- **Source**: Files uploaded in "Save/Edit Incident" modals
+- **Purpose**: Enrich the knowledge base for future queries
+- **Processing**: Full document ingestion → Database storage → Vector embeddings
+- **Persistence**: Permanently stored in PostgreSQL + Qdrant
+- **Usage**: Searched and retrieved by RAG system for all future conversations
+
+#### 💬 **Chat Files (Context Flow)**
+
+- **Source**: Files uploaded directly in chat interface
+- **Purpose**: Provide immediate context for current conversation
+- **Processing**: Content extraction → Included in current query → Not stored
+- **Persistence**: Temporary - cleared after message is sent
+- **Usage**: Used only for the current question/answer pair
+
+### 🖼️ Image OCR Capabilities
+
+**Supported Image Formats:**
+
+- PNG, JPG, JPEG, GIF, BMP, TIFF
+
+**OCR Features:**
+
+- **Engine**: Tesseract OCR via pytesseract
+- **Languages**: Spanish + English (`spa+eng`)
+- **Quality**: Automatic image processing for optimal text extraction
+- **Fallback**: Graceful handling when OCR is unavailable
+
+**Example Use Cases:**
+
+- Screenshots of SAP transactions
+- Error message captures
+- Diagrams with text annotations
+- Scanned documents or manuals
+
+### 📋 Supported File Types
+
+| Type            | Extensions                     | Processing Method                      |
+| --------------- | ------------------------------ | -------------------------------------- |
+| **Documents**   | PDF, DOCX, DOC                 | Text extraction + metadata             |
+| **Web Content** | HTML, HTM                      | BeautifulSoup parsing                  |
+| **Markup**      | MD, Markdown                   | Markdown conversion                    |
+| **Plain Text**  | TXT                            | Direct reading with encoding detection |
+| **Images**      | PNG, JPG, JPEG, GIF, BMP, TIFF | OCR text extraction                    |
+
+### 🔧 Installation Requirements
+
+**OCR Dependencies:**
+
+```bash
+# Python packages (auto-installed by setup script)
+pip install pytesseract Pillow
+
+# System requirements (manual installation needed)
+# Windows: Download Tesseract from GitHub releases
+# Linux: sudo apt-get install tesseract-ocr
+# macOS: brew install tesseract
+```
+
+**Configuration:**
+
+```python
+# OCR language support
+pytesseract.image_to_string(image, lang='spa+eng')
+
+# Automatic fallback when OCR unavailable
+if not OCR_AVAILABLE:
+    return "[IMAGE: filename] - OCR not available"
+```
 
 ## 🚀 Quick Installation
 
 ### ⚡ One-Click Startup (Recommended)
 
 **Windows (PowerShell):**
+
 ```powershell
 # 1. Clone repository
 git clone https://github.com/Andresvelascofdez/SAP-Assistant.git
@@ -60,6 +153,7 @@ cp .env.example .env
 ```
 
 **Linux/macOS:**
+
 ```bash
 # 1. Clone repository
 git clone https://github.com/Andresvelascofdez/SAP-Assistant.git
@@ -75,8 +169,9 @@ chmod +x start-sapisu-wiki.sh
 ```
 
 **What the script does:**
+
 - ✅ Stops any existing services
-- ✅ Verifies all prerequisites 
+- ✅ Verifies all prerequisites
 - ✅ Starts Docker services (PostgreSQL + Qdrant)
 - ✅ Configures Python environment
 - ✅ Launches FastAPI server
@@ -191,8 +286,9 @@ uvicorn main:app --reload --port 8000
 - **Main Interface**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/health
-npm install
-npm run dev
+  npm install
+  npm run dev
+
 ```
 
 ## Basic Usage
@@ -222,18 +318,20 @@ npm run dev
 ## Project Structure
 
 ```
-├── api/                    # FastAPI Backend
-│   ├── routers/           # REST Endpoints
-│   ├── models/            # Pydantic Models
-│   ├── db/                # SQLAlchemy + Alembic
-│   ├── services/          # Business Logic
-│   └── utils/             # Utilities
-├── scheduler/             # Scheduled Tasks
-├── scripts/               # Utility Scripts
-├── deploy/               # Docker Compose
-├── tests/                # Unit and Integration Tests
-└── CHANGELOG.md          # Project Changelog
-```
+
+├── api/ # FastAPI Backend
+│ ├── routers/ # REST Endpoints
+│ ├── models/ # Pydantic Models
+│ ├── db/ # SQLAlchemy + Alembic
+│ ├── services/ # Business Logic
+│ └── utils/ # Utilities
+├── scheduler/ # Scheduled Tasks
+├── scripts/ # Utility Scripts
+├── deploy/ # Docker Compose
+├── tests/ # Unit and Integration Tests
+└── CHANGELOG.md # Project Changelog
+
+````
 
 ## Security
 
@@ -257,7 +355,7 @@ npm run dev
 
 ```bash
 pytest tests/ -v --cov=api
-```
+````
 
 ### Linting
 
@@ -276,6 +374,12 @@ alembic upgrade head
 ```
 
 ## Advanced Configuration
+
+### 📖 Documentation
+
+- **[OCR Configuration Guide](docs/OCR_CONFIG.md)** - Complete setup for image processing
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions
+- **[OpenAI Configuration](docs/OPENAI_CONFIG.md)** - API setup and model configuration
 
 This project includes all necessary configuration files. The system is ready to run with the provided setup scripts and docker-compose configuration.
 

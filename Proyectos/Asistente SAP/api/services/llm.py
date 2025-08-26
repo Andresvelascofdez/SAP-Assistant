@@ -60,25 +60,78 @@ class LLMService:
         self, 
         query: str, 
         context_chunks: list, 
-        tenant_slug: str
+        tenant_slug: str,
+        additional_context: str = None
     ) -> Dict[str, Any]:
         """Generar respuesta de chat usando contexto recuperado"""
         
         prompt = self._get_chat_prompt()
         context = self._format_context(context_chunks)
         
+        # LOG DE DEPURACIÓN: Mostrar el contexto formateado final
+        logger.info(
+            "=== CONTEXTO FORMATEADO PARA LLM ===",
+            tenant_slug=tenant_slug,
+            query=query,
+            context_length=len(context),
+            has_additional_context=additional_context is not None,
+            additional_context_length=len(additional_context) if additional_context else 0,
+            formatted_context=context[:500] + "..." if len(context) > 500 else context
+        )
+        
+        # GPT-4o-mini tiene 128,000 tokens de límite real
+        # Configuramos límites más generosos
+        MAX_ADDITIONAL_CONTEXT_TOKENS = 100000  # Mucho más generoso
+        MAX_ADDITIONAL_CONTEXT_CHARS = MAX_ADDITIONAL_CONTEXT_TOKENS * 4  # ~400,000 caracteres
+        
+        if additional_context and len(additional_context) > MAX_ADDITIONAL_CONTEXT_CHARS:
+            original_length = len(additional_context)
+            logger.info(
+                "=== CONTEXTO ADICIONAL EXTREMADAMENTE LARGO - GENERANDO RESUMEN ===",
+                original_length=original_length,
+                max_chars=MAX_ADDITIONAL_CONTEXT_CHARS,
+                note="Solo archivos mayores a 400K caracteres necesitan resumen"
+            )
+            
+            # Generar resumen del contenido largo
+            additional_context = await self._summarize_large_content(additional_context)
+            
+            logger.info(
+                "=== RESUMEN GENERADO ===",
+                original_length=original_length,
+                summary_length=len(additional_context),
+                compression_ratio=f"{(len(additional_context)/original_length)*100:.1f}%"
+            )
+        else:
+            # Log para mostrar que NO se necesita resumen
+            if additional_context:
+                logger.info(
+                    "=== CONTEXTO ADICIONAL PROCESADO COMPLETO ===",
+                    content_length=len(additional_context),
+                    estimated_tokens=len(additional_context) // 4,
+                    note="Archivo dentro del límite, se usa contenido completo"
+                )
+        
+        # Preparar el prompt del usuario con todos los contextos
+        user_prompt = f"""
+Tenant: {tenant_slug}
+Pregunta: {query}
+
+Contexto disponible (RAG):
+{context}"""
+        
+        if additional_context:
+            user_prompt += f"""
+
+Contexto adicional (archivo subido):
+{additional_context}"""
+        
         try:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": prompt},
-                    {"role": "user", "content": f"""
-Tenant: {tenant_slug}
-Pregunta: {query}
-
-Contexto disponible:
-{context}
-"""}
+                    {"role": "user", "content": user_prompt}
                 ],
                 temperature=0.2,
                 max_tokens=1500
@@ -166,6 +219,73 @@ Formato de respuesta:
             formatted.append(f"[Fuente {i}: {source}]\n{content}")
         
         return "\n\n---\n\n".join(formatted)
+    
+    async def _summarize_large_content(self, content: str) -> str:
+        """Resumir contenido largo usando el LLM"""
+        try:
+            # Dividir el contenido en chunks más pequeños si es necesario
+            max_chunk_size = 15000  # ~3750 tokens por chunk
+            
+            if len(content) <= max_chunk_size:
+                # Contenido pequeño, resumir directamente
+                return await self._create_summary(content)
+            else:
+                # Contenido muy grande, dividir y resumir por partes
+                chunks = []
+                for i in range(0, len(content), max_chunk_size):
+                    chunk = content[i:i + max_chunk_size]
+                    chunk_summary = await self._create_summary(chunk)
+                    chunks.append(chunk_summary)
+                
+                # Si hay múltiples resúmenes, combinarlos
+                if len(chunks) > 1:
+                    combined = "\n\n".join(chunks)
+                    # Si el resultado combinado sigue siendo largo, resumir una vez más
+                    if len(combined) > 8000:  # ~2000 tokens
+                        return await self._create_summary(combined, final_summary=True)
+                    return combined
+                else:
+                    return chunks[0]
+                    
+        except Exception as e:
+            logger.error(f"Error creating summary: {e}")
+            # Fallback: truncar si el resumen falla
+            return content[:8000] + "\n\n[RESUMEN AUTOMÁTICO FALLÓ - CONTENIDO TRUNCADO]"
+    
+    async def _create_summary(self, content: str, final_summary: bool = False) -> str:
+        """Crear un resumen de contenido específico"""
+        summary_type = "resumen final conciso" if final_summary else "resumen detallado"
+        
+        summary_prompt = f"""Crea un {summary_type} del siguiente contenido, manteniendo toda la información técnica importante, números de transacciones, códigos, configuraciones y detalles relevantes.
+
+IMPORTANTE:
+- Mantén todos los códigos de transacciones SAP (como EL02, EUITRANS, etc.)
+- Conserva números, configuraciones y parámetros técnicos
+- Incluye todos los procedimientos y pasos importantes
+- Mantén la estructura lógica del contenido
+- Usa un formato claro y organizado
+
+Contenido a resumir:
+{content}
+
+Resumen:"""
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "user", "content": summary_prompt}
+                ],
+                temperature=0.1,  # Baja temperatura para consistencia
+                max_tokens=1500 if final_summary else 2000
+            )
+            
+            summary = response.choices[0].message.content
+            return f"[RESUMEN AUTOMÁTICO]\n{summary}"
+            
+        except Exception as e:
+            logger.error(f"Error calling OpenAI for summary: {e}")
+            raise e
     
     def _calculate_confidence(self, query: str, context_chunks: list, answer: str) -> float:
         """Calcular confianza de la respuesta"""
